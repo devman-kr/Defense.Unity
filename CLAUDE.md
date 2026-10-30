@@ -55,7 +55,8 @@ Defense 게임의 Unity 6 · URP 프로젝트이자 공개 포트폴리오 저�
 - 컴파일 + EditMode: `unity test . --mode EditMode --output Logs/editmode-results.xml --timeout 900 -- -logFile Logs/gate-editmode.log` — 종료 코드 0 통과 · 8 테스트 실패 · 6 판정 없음(컴파일 오류 · 라이선스 · 시간 초과). 약 20초.
 - 경고 · 오류 줄: `grep -E 'warning CS|error CS' Logs/gate-editmode.log` 가 0줄. 스크립트가 바뀐 실행에서만 컴파일 줄이 찍힌다.
 - PlayMode: 같은 명령에 `--mode PlayMode`(PlayMode 테스트가 생기는 `DEF-M01` 에서 실측).
-- 빌드: `unity build . --profile Web --output-path ../z.builds/webgl/<이름>` · `unity build . --profile Android-Dev --output-path ../z.builds/debug/<이름>.apk`. 산출물 장부는 `../z.builds/BUILDS.md`.
+- 빌드: `unity build . --profile Web --output-path ../z.builds/webgl/<이름> --log-file Logs/build-web.log` · `unity build . --profile Android-Dev --output-path ../z.builds/debug/<이름>.apk`. WebGL 377초(Android 에서 전환 재임포트 포함), Android 개발 APK 240초(첫 IL2CPP, 열림 경로). 산출물 장부는 `../z.builds/BUILDS.md`.
+- 빌드 뒤 `git status` — 플랫폼을 바꿔 빌드하면 에디터가 URP 에셋(`Assets/Settings/*_RPAsset.asset` 셰이더 프리필터 · `UniversalRenderPipelineGlobalSettings.asset`)과 `ProjectSettings.asset`(플랫폼별 배칭 항목)을 다시 저장한다. 기능 커밋과 섞지 않고 「에디터 자동 변환」 커밋으로 따로 둔다.
 
 **에디터가 열려 있을 때(`unity command`)**
 - 이 프로젝트를 연 에디터가 있으면 batchmode 명령은 시작 전에 거부된다(종료 6, `already open in a running Editor`). 둘 중 하나만 쓴다.
@@ -64,7 +65,7 @@ Defense 게임의 Unity 6 · URP 프로젝트이자 공개 포트폴리오 저�
 - 컴파일: `U script recompile --result-only` → `U script recompile_status --result-only` 가 `completed` · `up_to_date` → `U console status --result-only` 의 `groundTruth` 가 `compilationFailed: false` · `consoleErrors: 0` · `consoleWarnings: 0`.
 - EditMode: `U test run --mode editor --result-only` → `Summary.Failed: 0`. 약 0.3초. PlayMode 는 `--mode playmode`.
 - 플레이 모드: `U editor.playmode start` → `U editor status --result-only` 의 `playMode: playing` → `U editor.playmode stop`.
-- 빌드: `U build run --profileName Android-Dev --outputPath ../z.builds/debug/<이름>.apk --confirm true` → `U build status --result-only` 가 `completed`.
+- 빌드: `U build run --target Android --profileName Android-Dev --outputPath <절대 경로>/z.builds/debug/<이름>.apk --options '["Development"]' --confirm true` → `U build status --result-only` 가 `completed` · `result: Succeeded`. **`--target` 을 꼭 준다** — 대상은 프로필 적용 전에 활성 대상으로 정해져, 빠지면 `--profileName` 이 있어도 지금 대상(macOS 등)으로 빌드된다. 개발 빌드 여부도 프로필이 아니라 `--options` 가 정한다(pipeline 0.9.1 `BuildCommand.cs`).
 - 명령 목록 · 인자는 `U --detail full --format json`(166개, 2026-10-30). 플레이어 설정은 `U settings.player get` · `set`.
 
 ## 검토 기준

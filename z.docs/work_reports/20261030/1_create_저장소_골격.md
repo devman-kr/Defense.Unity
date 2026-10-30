@@ -12,7 +12,7 @@ team: dev
 work_unit: P00
 work_type: create
 tags: [defense, 환경, 게이트, 빌드]
-commits: [e46ecab, 3d4abc4, 4ec4f97, 4fdea24]
+commits: [e46ecab, 3d4abc4, 4ec4f97, 4fdea24, a89d77b, 59f9a07]
 related: []
 ---
 
@@ -26,7 +26,7 @@ related: []
 | 근거 | Planning `P00_환경_체계_로깅/02_계획/계획서_20261030.md` 4절 S2 · 결정 D-05 |
 | 위험 등급 | 고 — `ProjectSettings/` · `Packages/manifest.json` · 빌드 프로필 첫 설정(가이드 5절). 승인 지점 셋(패키지 · PlayerSettings · 빌드)은 그 직전에 사용자 승인 |
 | 증거 ① 게이트 | `unity test . --mode EditMode …` → 종료 0, `total="1" passed="1" failed="0"`, `grep -E 'warning CS\|error CS'` 0줄 |
-| 증거 ② 상태 | `git status --short` → (채움 — 마지막 커밋 뒤) |
+| 증거 ② 상태 | `git status --short` → 빈 출력(이 보고서 커밋 뒤). `git ls-files \| grep -cE '^(Library\|Temp\|Logs\|obj\|Builds\|UserSettings)/'` → 0 |
 | 증거 ③ 캡처 | `z.captures/20261030/web_first3.png`(WebGL 첫 화면 — SampleScene 하늘 · 지평선, 「Lantern Rush!」) · 확인 안 한 것은 9절 |
 
 ## 1. 한 줄 결론
@@ -46,7 +46,9 @@ related: []
 | `3d4abc4` | `CLAUDE.md`(Planning `_템플릿/Unity_CLAUDE.md` + 게이트 실측 · 빌드 프로필 검토 기준) · `README.md` · `ASSETS.md` · `LICENSE`(MIT) · `.gitattributes`(LF · 바이너리, LFS 없음) · `Defense.Core` asmdef + `AssemblyInfo.cs`(InternalsVisibleTo) · `Defense.Tests.EditMode` asmdef + `GateSmokeTests` · `com.unity.pipeline` 0.9.1-exp.1 · PlayerSettings · 빌드 프로필 `Android-Dev` · `Web` · 에디터 자동 변환(PC URP 에셋 12→13 · 머티리얼 버전 9→10) |
 | `4ec4f97` | Android 첫 빌드 때 에디터가 다시 저장한 Mobile URP 에셋 · 전역 설정 · 볼륨 프로필 · Android 배칭 기본 항목 |
 | `4fdea24` | WebGL 첫 빌드 때 에디터가 다시 저장한 PC URP 에셋 · 전역 설정 · WebGL 배칭 기본 항목 |
-| 이 커밋 | 이 보고서 · `CLAUDE.md` 빌드 줄(`--target` 필수 · 시간 · 빌드 뒤 `git status`) |
+| `a89d77b` | 이 보고서 · `CLAUDE.md` 빌드 줄(`--target` 필수 · 시간 · 빌드 뒤 `git status`) |
+| `59f9a07` | 세션 센서 지적 고침(8절) |
+| 이 커밋 | 이 보고서 8절 · 9절 |
 
 PlayerSettings(사용자 승인 2026-10-30): 회사 `DefaultCompany` → `devmankr` · 제품명 `Defense.Unity` → `Lantern Rush!` · 번들 ID(Android · iOS · Standalone) → `com.devmankr.defense`(D-05). 버전 0.1.0 · Android IL2CPP · ARM64 · 최소 API 25 · WebGL Brotli 는 템플릿 값 그대로.
 
@@ -88,7 +90,26 @@ PlayerSettings(사용자 승인 2026-10-30): 회사 `DefaultCompany` → `devman
 
 ## 8. 코드 리뷰
 
-(채움)
+위험 등급: 고(`ProjectSettings/` · `Packages/` · 빌드 프로필). D-05 대로 템플릿 생성물(`e46ecab`)은 범위에서 빼고 세션 센서 1 — 설정 차이는 사람이 직접 읽는다. 결정론 게이트: 컴파일 오류 0 · 새 경고 0 · EditMode 1 → 1 통과(고친 뒤 재실행, 스크립트가 바뀐 실행).
+
+| 저장소 | 범위 | 크기 | 구성 | 에이전트 · 새 토큰 · 시간 | 지적 | 고침 | 틀림 | 의도 | 범위 밖 | 처리 안 함 | 미해결 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Unity | `e46ecab..a89d77b` | 16파일 +315/−32 | 세션 센서(A sonnet) + 판정 반론(D sonnet) | 2 · 105만 · 약 20분 | 16 | 9 | 0 | 1 | 1 | 5 | 0 |
+
+원본 · 처리표: `../z.docs/Defense.Planning/P00_환경_체계_로깅/03_작업기록/코드리뷰_20261030_S2/`(처리.md 16행).
+
+사람이 볼 행(blocking · important 이면서 new, 미해결, 데이터 손상 · 비밀값):
+
+| 식별자 | 종류 · 심각도 · 기원 | 영역 | 유형 | 파일:줄 | 처리 | 근거 · 커밋 · 반론 |
+|---|---|---|---|---|---|---|
+| P00.S2.UNI.01 | question · important · new | BUILD | 닫힘 경로 Android 빌드 미실측 · 프로필 `m_BuildType: 2` 와 `m_Development: 1` 조합 | `Assets/Settings/Build Profiles/Android-Dev.asset:33,53` | 고침 | `59f9a07` — `CLAUDE.md` 에 미실측 · 확인 방법 표시 |
+| P00.S2.UNI.02 | issue · important · new | BUILD | 승인 지점 변경을 기능 변경과 한 커밋(`3d4abc4`)에 | `3d4abc4` | 의도 | 계획서 7절 #6 · D-05 · 반론 수락 |
+| P00.S2.UNI.03 | suggestion · important · new | BUILD | 플레이어에 명령 실행 서버를 넣는 정의 기호에 대한 검토 기준 없음 | `ProjectSettings/ProjectSettings.asset:838` | 고침 | `59f9a07` — `CLAUDE.md` 「검토 기준」 |
+| P00.S2.UNI.12 | suggestion · nit · pre-existing | BUILD | 서명 자료 ignore 없음(비밀값 예방) | `.gitignore` | 고침 | `59f9a07` |
+
+판정 반론: 의도 1 → 수락 1 · 반박 0. 범위 밖 1(pre-existing — H-02). 처리 안 함 5(nit 3 · plausible 2). 고침이 ignore 줄 · 주석 · 문서뿐이라 2라운드 없음. 종료 조건 충족.
+
+사람이 직접 읽을 설정 차이: `git diff e46ecab..59f9a07 -- Packages/manifest.json ProjectSettings/ProjectSettings.asset` — manifest 1항목(`com.unity.pipeline`) · PlayerSettings 회사 · 제품명 · 번들 ID 3곳 · 플랫폼별 배칭 항목 2개(빌드 때 에디터가 더함).
 
 ## 9. 확인하지 않은 것 · 추정
 
@@ -96,7 +117,8 @@ PlayerSettings(사용자 승인 2026-10-30): 회사 `DefaultCompany` → `devman
 - PlayMode 게이트 명령 — PlayMode 테스트가 없어 `DEF-M01` 에서 실측.
 - 에디터 닫힘 경로의 Android 빌드(`unity build --profile Android-Dev`)와 열림 경로의 WebGL 빌드 — 각 플랫폼은 한 경로로만 빌드했다.
 - WebGL 을 실제 GPU 브라우저에서 — 헤드리스 SwiftShader 에서는 콘솔에 숨은 셰이더 3개(`Hidden/CoreSRP/CoreCopy` · `Hidden/Universal Render Pipeline/StencilDitherMaskSeed` · `Hidden/Universal/HDRDebugView`) 「not supported on this GPU」 오류가 찍혔다. 화면은 정상.
-- URP 가 어떤 품질 단계의 에셋을 왜 다시 저장하는지(WebGL 기본 품질은 Mobile 인데 PC 에셋이 바뀌었다).
+- 「WebGL 기본 품질은 Mobile 인데 PC 에셋이 바뀐 까닭」은 센서가 소스로 답했다(△ `P00.S2.UNI.07` — PC 단계가 WebGL 을 제외하지 않아 둘 다 빌드에 들어간다). 정리는 H-02.
+- 닫힘 경로 Android 빌드(`unity build --profile Android-Dev`)가 debuggable APK 를 내는지(`P00.S2.UNI.01`).
 - Claude Code 세션에서 `csharp-lsp` 의 정의 이동 · 호버(7절).
 - Unity 플러그인 상시 컨텍스트 비용(`/context`) — 세션이 직접 볼 수 없다.
 

@@ -1,3 +1,13 @@
+---
+id: 20261030-unity-csharp-standards
+title: C# 코딩 표준 — Unity
+summary: Unity 6000.3(C# 9) 모바일 · 오프라인 게임용 C# 규칙으로 명명 · var 금지 · UnityEngine.Object 의 null 검사 · 풀 · 시간 · JsonUtility 저장 · 테스트 등 §0~§19 와 근거 표를 정하며 절 머리에 코드리뷰 영역 코드를 단다.
+doc_type: guide
+status: final
+lifecycle: living
+created: 2026-10-30
+updated: 2026-10-30
+---
 # C# 코딩 표준 — Unity
 
 Defense(Lantern Rush!)와 뒤이은 게임들의 Unity C# 규칙이다. EasyCheck.Server 의 C# 코딩 표준(POCU C# 표준 계열 — 원문은 Planning 커밋 `caf8ac8`)을 Unity 6 · 모바일 · 오프라인 · 공개 포트폴리오 전제로 고쳤다(Planning P00 검토서 2026-10-30 · 결정 D-06 · D-07). 정본은 Planning `_템플릿/Unity_csharp_coding_standards.md`, 사본은 `Defense.Unity/z.docs/dev/csharp_coding_standards.md` — 고칠 때는 정본을 고치고 복사한다.

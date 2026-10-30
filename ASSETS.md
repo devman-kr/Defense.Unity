@@ -1,3 +1,13 @@
+---
+id: 20261030-unity-assets-ledger
+title: ASSETS — 외부 파일 장부
+summary: Defense.Unity 에 든 외부 파일(.gitignore · Unity 6000.3.27f1 Universal 3D 템플릿 산출물 · 코딩 표준 사본 · .editorconfig)과 추가 패키지 com.unity.pipeline · newtonsoft-json 의 출처 · 라이선스 · AI 생성 여부를 적은 장부다.
+doc_type: register
+status: final
+lifecycle: living
+created: 2026-10-30
+updated: 2026-10-30
+---
 # ASSETS — 외부 파일 장부
 
 이 저장소에 든 외부 파일과 `Packages/manifest.json` 으로 참조하는 추가 패키지의 출처 · 라이선스를 적는다. **장부에 없는 외부 파일은 커밋하지 않는다.** AI 생성물은 「AI 생성(도구 · 모델)」으로 적는다. 유료 에셋은 쓰지 않고, Unity Asset Store 「무료」 에셋은 재배포 금지라 커밋하지 않는다.

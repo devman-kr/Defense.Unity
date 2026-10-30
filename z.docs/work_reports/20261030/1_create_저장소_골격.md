@@ -1,7 +1,7 @@
 ---
 id: 20261030-p00-s2-defense-unity-repo-skeleton
 title: P00 세션 S2 Defense.Unity 생성 · 결정론 게이트 실측 · 빌드 스모크
-summary: Unity 6000.3.27f1 「Universal 3D」 템플릿으로 저장소를 만들고(템플릿 생성물은 첫 커밋으로 분리), Unity CLI 로 에디터 닫힘(batchmode) · 열림(unity command) 두 경로의 게이트 명령을 실측해 CLAUDE.md 에 적었다. PlayerSettings · 빌드 프로필을 정하고 Android 개발 APK · WebGL 을 한 번씩 빌드했다.
+summary: Unity 6000.3.27f1 「Universal 3D」 템플릿으로 저장소를 만들고 에디터 닫힘(batchmode) · 열림(unity command) 두 경로의 게이트 명령을 실측해 CLAUDE.md 에 적었다. PlayerSettings · 빌드 프로필을 정하고 Android 개발 APK · WebGL 을 빌드했다.
 doc_type: work_report
 status: final
 lifecycle: static
@@ -11,7 +11,7 @@ author: devman-kr
 team: dev
 work_unit: P00
 work_type: create
-tags: [defense, 환경, 게이트, 빌드]
+tags: [BUILD, TEST]
 commits: [e46ecab, 3d4abc4, 4ec4f97, 4fdea24, a89d77b, 59f9a07]
 related: []
 ---

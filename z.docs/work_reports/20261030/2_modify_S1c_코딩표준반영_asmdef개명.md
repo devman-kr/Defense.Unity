@@ -11,9 +11,9 @@ author: devman-kr
 team: dev
 work_unit: P00
 work_type: modify
-tags: [defense, 코딩표준, asmdef, 환경]
+tags: [BUILD]
 commits: [aeccdae, 6130ea4]
-related: [1_create_저장소_골격.md]
+related: [20261030-p00-s2-defense-unity-repo-skeleton]
 ---
 
 # P00 세션 S1c — 코딩 표준 반영 · asmdef 개명

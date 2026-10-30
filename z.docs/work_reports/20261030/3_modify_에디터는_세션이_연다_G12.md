@@ -11,9 +11,8 @@ author: devman-kr
 team: dev
 work_unit: P00
 work_type: modify
-tags: [defense, 환경, unity-cli, 규칙]
 commits: [e227f1f]
-related: [2_modify_S1c_코딩표준반영_asmdef개명.md]
+related: [20261030-p00-s1c-coding-standard-apply]
 ---
 
 # P00 에디터는 세션이 연다(G-12)

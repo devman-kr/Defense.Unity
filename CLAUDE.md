@@ -1,3 +1,13 @@
+---
+id: 20261029-unity-claude
+title: Defense.Unity
+summary: Defense.Unity 저장소 안 작업의 규칙으로, 계획 제시 후 승인 · 작업 보고서 · git 워크플로우 · 폴더와 asmdef 구성 · 결정론 게이트 명령(unity test · unity build · unity command) · 검토 기준을 정한다.
+doc_type: guide
+status: final
+lifecycle: living
+created: 2026-10-29
+updated: 2026-10-31
+---
 # Defense.Unity
 
 Defense 게임의 Unity 6 · URP 프로젝트이자 공개 포트폴리오 저장소. 게임 기획 · 특징은 `../z.docs/Defense.Design/`(G-10)에만 있고 이 문서에는 적지 않는다. 작업 공간 규칙은 `../CLAUDE.md`(루트), 세 게임 공통은 `../../CLAUDE.md`, 과제 · 결정은 `../z.docs/Defense.Planning/`. 이 문서는 저장소 안 작업(코드 · 문서 · 커밋)의 규칙이고, 루트와 충돌하면 이 문서가 우선한다. 정본은 `../z.docs/Defense.Planning/_템플릿/Unity_CLAUDE.md` 이고, 고치면 정본도 같이 고친다.
@@ -20,7 +30,7 @@ Defense 게임의 Unity 6 · URP 프로젝트이자 공개 포트폴리오 저�
 
 ## 작업 후
 - 작업 내용을 요약해 전달한다. 바꾸는 곳 밖의 원본 내용은 보존한다.
-- `z.docs/work_reports/{yyyyMMdd}/{그날 순번}_{verb}_{제목}.md` 작업 보고서를 쓴다. 프론트매터 `work_unit` 은 과제 ID(`P01`).
+- `z.docs/work_reports/{yyyyMMdd}/{그날 순번}_{verb}_{제목}.md` 작업 보고서를 쓴다. 프론트매터는 `../../_공통/문서규약.md`(G-18)대로 — `doc_type: work_report` · `work_unit` 은 과제 ID(`P01`) · `work_type` 은 verb · `commits` 는 보고하는 커밋.
 - 모든 작업 후 커밋한다.
 
 ## git 워크플로우

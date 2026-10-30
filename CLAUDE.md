@@ -26,7 +26,7 @@ Defense 게임의 Unity 6 · URP 프로젝트이자 공개 포트폴리오 저�
 ## git 워크플로우
 - 커밋 메시지는 한글, `verb: [Pnn] 제목` — verb 는 `create` · `modify` · `fix` · `refactor` · `docs` · `delete` · `test`.
 - 커밋 전에 `git diff` 와 `git status` 를 확인한다. `.meta` 가 짝으로 들어갔는지, `Library/` · `Temp/` · `Logs/` · `obj/` · `Builds/` · `UserSettings/` 가 안 들어갔는지 본다.
-- 트레일러는 `_공통` Q-01 결정대로. 결정 전: `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`.
+- 트레일러는 그 세션 모델 이름으로 `Co-Authored-By: Claude <모델> <noreply@anthropic.com>` 하나(`_공통` G-13 — 예: `Claude Opus 5.5`).
 - 푸시는 루트 `CLAUDE.md` 「푸시」대로(허락 뒤 주 세션만).
 
 ## Agent Teams 병렬 구현

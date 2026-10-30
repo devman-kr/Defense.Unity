@@ -25,7 +25,7 @@ related: [1_create_저장소_골격.md]
 | 작업일 | 2026-10-30 (Mac M5 16 GB, Claude Fable 5.1) |
 | 근거 | Planning `P00_환경_체계_로깅/02_계획/계획서_20261030.md` 4절 S1c · 결정 D-06 · D-07 · 검토서 `01_검토/검토서_20261030_코딩표준.md` |
 | 위험 등급 | 중 — asmdef 이름 · 네임스페이스 개명(`BUILD`). 고위험 경로(`ProjectSettings/` · `Packages/` · 저장 · 재화 · 빌드 프로필)는 건드리지 않음 |
-| 증거 ① 게이트 | `unity test . --mode EditMode --output Logs/editmode-results.xml --timeout 900 -- -logFile Logs/gate-editmode.log`(에디터 닫힘) → 종료 0. 개명 뒤 `total="1" passed="1" failed="0"` · 14초, 센서 고침 뒤 `total="2" passed="2" failed="0"` · 410초. 두 번 다 `grep -cE 'warning CS\|error CS' Logs/gate-editmode.log` → 0. 로그에 `Devman.Core.dll` · `Defense.Tests.EditMode.dll` 컴파일 흔적 |
+| 증거 ① 게이트 | `unity test . --mode EditMode --output Logs/editmode-results.xml --timeout 900 -- -logFile Logs/gate-editmode.log`(에디터 닫힘) → 종료 0. 개명 뒤 `total="1" passed="1" failed="0"` · 14초, 센서 고침 뒤 `total="2" passed="2" failed="0"` · 410초(그중 403초는 키체인 대화상자 대기 — 6절). 두 번 다 `grep -cE 'warning CS\|error CS' Logs/gate-editmode.log` → 0. 로그에 `Devman.Core.dll` · `Defense.Tests.EditMode.dll` 컴파일 흔적 |
 | 증거 ② 상태 | `git status --short` → 빈 출력(이 보고서 커밋 뒤, 커밋 `aeccdae` · `6130ea4`). `git ls-files \| grep -cE '^(Library\|Temp\|Logs\|obj\|Builds\|UserSettings)/'` → 0. 바뀐 `Assets/` 파일 4개 모두 `.meta` 짝 있음 |
 | 증거 ③ 캡처 | 없음 — 코드 · 문서만. 확인하지 않은 것은 6절 |
 
@@ -82,7 +82,7 @@ related: [1_create_저장소_골격.md]
 - `.editorconfig` 가 VS Code C# · Rider 에서 의도대로 동작하는지(명명 규칙은 Planning S1b 2라운드 센서가 .NET SDK 10 Roslyn 으로만 실측). 열린 에디터 경로의 게이트 · `csharp-lsp` 의 정의 이동은 P00 NOTES 4번 ① 그대로.
 - 없는 어셈블리를 가리키는 `InternalsVisibleTo` 가 무해하다는 것은 C# 컴파일러 동작(세션 지식) — 이번 게이트가 경고 0 으로 통과한 것이 유일한 실측이다.
 - `Library/Bee/PlayerScriptAssemblies/` 에 옛 `Defense.Core.dll` 이 남아 있다(센서 UNI.03) — 커밋 대상 아니고 다음 빌드가 다시 만든다. Android-Dev · Web 빌드로 개명 뒤 플레이어 컴파일을 확인하지 않았다.
-- 둘째 게이트 실행이 410초 걸렸다(첫 실행 14초). 원인을 로그로 좁히지 않았다 — 같은 시각에 다른 Claude 세션이 활동 중이었고(19:22) 라이브러리 재임포트 가능성 [추정].
+- 둘째 게이트 실행의 410초는 **macOS 키체인 접근 대화상자**를 기다린 시간이다(사용자 질문으로 확인 ✔). `securityd` 로그: 19:28:33 「displaying keychain prompt for `~/.unity/bin/unity`」 → 19:35:16 「user approved 'allow'」, 에디터 시작 19:35:16, 결과 19:35:23 — 실제 게이트는 7초. 첫 실행(19:17:46 → 19:18:00)도 같은 대화상자가 떴고 14초 안에 답했다. `unity` CLI 가 저장된 로그인 토큰을 키체인에서 읽을 때마다(Hub `broker-audit` 「stored-token-valid」) 뜨며, 「항상 허용」을 누르기 전까지는 실행마다 뜬다. 게이트 시간 측정은 이 응답 시간을 뺀다.
 - POCU C# 코딩 표준(`docs.popekim.com`)의 이용 조건은 확인하지 않았다. 이 저장소의 표준은 규칙 체계만 그 계열이고 문장은 새로 썼다(`ASSETS.md`).
 
 ## 7. 다음

@@ -58,7 +58,7 @@ z.docs/      마일스톤 · 작업 보고서(기획서는 별도 기획 저장�
 | CC0 · 오픈 라이선스 | (채움) | 3D 모델 · 효과음 · 폰트 — 전체 목록 [`ASSETS.md`](ASSETS.md) |
 | AI 생성 | (채움) | 도구 · 모델 표기는 `ASSETS.md` |
 
-개발 과정(기획 · 과제 · 결정 · 세션 로그): (채움 — `_공통` Q-02 · Q-03 결정 뒤 Design · Planning · Logs 저장소 링크)
+개발 과정(기획 · 과제 · 결정 · 세션 로그): [Defense.Design](https://github.com/devman-kr/Defense.Design)(기획서 · 목업) · [Defense.Planning](https://github.com/devman-kr/Defense.Planning)(과제 · 결정 · 계획 · 코드 리뷰 기록) · [Defense.Logs](https://github.com/devman-kr/Defense.Logs)(세션마다 프롬프트 원문 · 다이제스트 — 훅이 쓴다) · 세 게임 공통 결정 [games-common](https://github.com/devman-kr/games-common)
 
 ## 라이선스
 

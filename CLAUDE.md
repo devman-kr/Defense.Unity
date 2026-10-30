@@ -16,7 +16,7 @@ Defense 게임의 Unity 6 · URP 프로젝트이자 공개 포트폴리오 저�
 ## 작업 중
 - 명시적으로 지시된 내용 외에는 하지 않는다. 추가 작업이 필요하면 이유와 계획을 승인받는다.
 - 읽기 전용 명령은 바로 실행한다. 파일 · 상태 · 외부 자원을 바꾸거나 네트워크로 보내는 명령은 확인을 받는다.
-- 에디터 조작(씬 · 프리팹 · 컴포넌트 · 플레이 모드 · 빌드)은 `unity-cli` 로 주 세션만 한다. 에디터 재시작 · 패키지 추가 · `ProjectSettings/` 변경 · 플랫폼 전환은 승인 지점.
+- 에디터는 세션이 띄운다(G-12 — 명령은 「결정론 게이트」의 에디터가 열려 있을 때). 에디터 조작(씬 · 프리팹 · 컴포넌트 · 플레이 모드 · 빌드)은 `unity-cli` 로 주 세션만 한다. 사용자가 연 에디터의 종료 · 재시작 · 패키지 추가 · `ProjectSettings/` 변경 · 플랫폼 전환은 승인 지점.
 
 ## 작업 후
 - 작업 내용을 요약해 전달한다. 바꾸는 곳 밖의 원본 내용은 보존한다.
@@ -49,7 +49,7 @@ Defense 게임의 Unity 6 · URP 프로젝트이자 공개 포트폴리오 저�
 - EditMode 테스트 전부 통과. 런 흐름을 바꿨으면 PlayMode 스모크(자동 선택 + 가속 한 판).
 - 빌드 설정 · 플랫폼을 바꿨으면 대상 빌드 한 번(`Android-Dev` · `Web` 빌드 프로필).
 
-**에디터가 닫혀 있을 때(batchmode — 기본)**
+**에디터가 닫혀 있을 때(batchmode — 에디터 작업이 없을 때의 기본)**
 - 컴파일 + EditMode: `unity test . --mode EditMode --output Logs/editmode-results.xml --timeout 900 -- -logFile Logs/gate-editmode.log` — 종료 코드 0 통과 · 8 테스트 실패 · 6 판정 없음(컴파일 오류 · 라이선스 · 시간 초과). 약 20초.
 - 경고 · 오류 줄: `grep -E 'warning CS|error CS' Logs/gate-editmode.log` 가 0줄. 스크립트가 바뀐 실행에서만 컴파일 줄이 찍혀, 바뀐 것이 없으면 경고가 남아 있어도 0줄이다 — 커밋 전(스크립트를 고친 뒤) 실행에서 본다. 전체 경고 수가 필요하면 열린 에디터의 `console status`.
 - PlayMode: 같은 명령에 `--mode PlayMode`(PlayMode 테스트가 생기는 `DEF-M01` 에서 실측).
@@ -60,7 +60,9 @@ Defense 게임의 Unity 6 · URP 프로젝트이자 공개 포트폴리오 저�
 - 이 프로젝트를 연 에디터가 있으면 batchmode 명령은 시작 전에 거부된다(종료 6, `already open in a running Editor`). 둘 중 하나만 쓴다.
 - `unity` CLI 는 실행마다 **macOS 키체인 접근 대화상자**(저장된 로그인 토큰 읽기)를 띄울 수 있다 — 사용자가 「항상 허용」을 누르기 전까지. 사용자가 자리에 없으면 그만큼 기다리므로(2026-10-30 실측 403초), 게이트를 돌릴 때 대화상자를 알리고 시간 측정에서 뺀다.
 - 줄임: `U() { unity --no-banner command --project-path "$PWD" --caller plugin --skill unity-cli "$@"; }`. 전역 옵션은 `command` 앞에 둔다 — 뒤에 두면 다음 낱말을 값으로 먹는다.
-- 에디터: 사용자가 연 에디터, 또는 세션이 띄운 창 없는 에디터 — `"/Applications/Unity/Hub/Editor/6000.3.27f1/Unity.app/Contents/MacOS/Unity" -batchmode -projectPath "$PWD" -logFile Logs/editor-headless.log` 를 `-quit` 없이 백그라운드로. 준비는 `U editor status --result-only` 의 `"status": "ready"`(창 없는 에디터는 `unity status` 목록에 나오지 않는다).
+- 에디터: 세션이 띄운 창 없는 에디터(G-12). 띄우기 전에 `pgrep -q -x Blender` 로 Blender 가 없는지 본다(한 기기 G-01). `"/Applications/Unity/Hub/Editor/6000.3.27f1/Unity.app/Contents/MacOS/Unity" -batchmode -projectPath "$PWD" -logFile Logs/editor-headless.log` 를 `-quit` 없이 백그라운드로. 준비는 `U editor status --result-only` 의 `"status": "ready"`(창 없는 에디터는 `unity status` 목록에 나오지 않는다).
+- 끄기: 일이 끝나면 `U script eval --code 'UnityEditor.EditorApplication.delayCall += () => UnityEditor.EditorApplication.Exit(0); return "exit";' --result-only`(약 4초). 꺼졌는지는 `pgrep -q -f 'Unity.app/Contents/MacOS/Unity'` 의 참거짓으로만 본다 — 에디터 명령줄은 출력하지 않는다(`-accessToken` 이 들어 있을 수 있다).
+- 사용자가 GUI 에디터를 열어 두었으면(`unity status` 에 나온다) 그것을 쓰고, 끄거나 재시작하지 않는다(승인 지점).
 - 컴파일: `U script recompile --result-only` → `U script recompile_status --result-only` 가 `completed` · `up_to_date` → `U console status --result-only` 의 `groundTruth` 가 `compilationFailed: false` · `consoleErrors: 0` · `consoleWarnings: 0`.
 - EditMode: `U test run --mode editor --result-only` → `Summary.Failed: 0`. 약 0.3초. PlayMode 는 `--mode playmode`.
 - 플레이 모드: `U editor.playmode start` → `U editor status --result-only` 의 `playMode: playing` → `U editor.playmode stop`.

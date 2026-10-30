@@ -53,9 +53,9 @@ Defense 게임의 Unity 6 · URP 프로젝트이자 공개 포트폴리오 저�
 
 **에디터가 닫혀 있을 때(batchmode — 기본)**
 - 컴파일 + EditMode: `unity test . --mode EditMode --output Logs/editmode-results.xml --timeout 900 -- -logFile Logs/gate-editmode.log` — 종료 코드 0 통과 · 8 테스트 실패 · 6 판정 없음(컴파일 오류 · 라이선스 · 시간 초과). 약 20초.
-- 경고 · 오류 줄: `grep -E 'warning CS|error CS' Logs/gate-editmode.log` 가 0줄. 스크립트가 바뀐 실행에서만 컴파일 줄이 찍힌다.
+- 경고 · 오류 줄: `grep -E 'warning CS|error CS' Logs/gate-editmode.log` 가 0줄. 스크립트가 바뀐 실행에서만 컴파일 줄이 찍혀, 바뀐 것이 없으면 경고가 남아 있어도 0줄이다 — 커밋 전(스크립트를 고친 뒤) 실행에서 본다. 전체 경고 수가 필요하면 열린 에디터의 `console status`.
 - PlayMode: 같은 명령에 `--mode PlayMode`(PlayMode 테스트가 생기는 `DEF-M01` 에서 실측).
-- 빌드: `unity build . --profile Web --output-path ../z.builds/webgl/<이름> --log-file Logs/build-web.log` · `unity build . --profile Android-Dev --output-path ../z.builds/debug/<이름>.apk`. WebGL 377초(Android 에서 전환 재임포트 포함), Android 개발 APK 240초(첫 IL2CPP, 열림 경로). 산출물 장부는 `../z.builds/BUILDS.md`.
+- 빌드: `unity build . --profile Web --output-path ../z.builds/webgl/<이름> --log-file Logs/build-web.log` · `unity build . --profile Android-Dev --output-path ../z.builds/debug/<이름>.apk`(**미실측** — 프로필이 `m_Development: 1` · `m_BuildType: 2` 라 첫 실행 뒤 `aapt2 dump badging` 으로 `application-debuggable` 인지 본다). WebGL 377초(Android 에서 전환 재임포트 포함), Android 개발 APK 240초(첫 IL2CPP, 열림 경로). 산출물 장부는 `../z.builds/BUILDS.md`.
 - 빌드 뒤 `git status` — 플랫폼을 바꿔 빌드하면 에디터가 URP 에셋(`Assets/Settings/*_RPAsset.asset` 셰이더 프리필터 · `UniversalRenderPipelineGlobalSettings.asset`)과 `ProjectSettings.asset`(플랫폼별 배칭 항목)을 다시 저장한다. 기능 커밋과 섞지 않고 「에디터 자동 변환」 커밋으로 따로 둔다.
 
 **에디터가 열려 있을 때(`unity command`)**
@@ -75,6 +75,7 @@ Defense 게임의 Unity 6 · URP 프로젝트이자 공개 포트폴리오 저�
 - 시간: 게임 로직은 `Time.deltaTime`(일시정지 · 가속 반영), UI 연출만 `unscaledDeltaTime`.
 - 풀: 꺼낸 객체는 상태를 초기화하고, 돌려준 객체를 계속 참조하지 않는다.
 - 빌드 프로필: `Assets/Settings/Build Profiles/*.asset` 이 PlayerSettings 사본(`m_PlayerSettingsYaml.m_Settings` 가 빈 배열이 아님)을 품지 않는다 — 품으면 `ProjectSettings/` 를 바꿔도 그 프로필 빌드에 반영되지 않는다.
+- 플레이어 원격 실행 차단: `ProjectSettings.asset` 의 `scriptingDefineSymbols` 와 빌드 프로필 `m_ScriptingDefines` 에 `ENABLE_RUNTIME_PIPELINE` · `ENABLE_RUNTIME_PIPELINE_DEV` 를 넣지 않는다 — 넣으면 `com.unity.pipeline` 의 명령 실행 서버가 플레이어 빌드에 들어간다(패키지 `Documentation~/runtime-setup.md`).
 
 ## 참조 경로
 - 기획서: `../z.docs/Defense.Design/기획서.md`(기획 저장소 — Planning X-02)

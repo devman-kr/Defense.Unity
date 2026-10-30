@@ -4,7 +4,8 @@ using NUnit.Framework;
 namespace Defense.Tests.EditMode
 {
     /// <summary>
-    /// 결정론 게이트가 도는지 보이는 스모크 — 테스트 어셈블리가 컴파일되고 Core 어셈블리를 참조해 불러온다.
+    /// 결정론 게이트가 도는지 보이는 스모크 — 테스트 어셈블리와 Core 어셈블리가 컴파일돼 에디터에 로드된다.
+    /// asmdef 참조 · InternalsVisibleTo 이름은 검사하지 않는다(Core 에 아직 타입이 없다).
     /// </summary>
     public class GateSmokeTests
     {

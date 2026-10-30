@@ -6,7 +6,7 @@ doc_type: guide
 status: final
 lifecycle: living
 created: 2026-10-30
-updated: 2026-10-30
+updated: 2026-10-31
 ---
 # C# 코딩 표준 — Unity
 
@@ -293,4 +293,4 @@ Unity 쪽은 Unity 6.3 매뉴얼 · 스크립트 레퍼런스, C# 쪽은 Microso
 | 10 | 콘솔 메시지 · 로그에 스택 추적이 붙고, 스택 추적 해석은 자원을 많이 쓰는 작업이다. 사용자 배포에는 끈다 | [Stack trace logging](https://docs.unity.com/en-us/engine/6000.3/manual/unity-editor/editor-windows-views-reference/console-window/stack-trace) |
 | 11 | 개체마다의 `Update` 는 네이티브 C++ 에서 관리 C# 으로 들어오는 호출이라 비용이 있다(2015년 Unity 5.2 측정 — 지금 값은 직접 잰다) | [10000 Update() calls](https://unity.com/blog/engine-platform/10000-update-calls)(Unity 블로그) |
 
-원문(EasyCheck 판)과 절별 처리 · 결정 경위는 Planning `P00_환경_체계_로깅/01_검토/검토서_20261030_코딩표준.md` · `결정기록.md` D-06 · D-07.
+원문(EasyCheck 판)과 절별 처리 · 결정 경위는 Planning `z.completed/P00_환경_체계_로깅/01_검토/검토서_20261030_코딩표준.md` · `결정기록.md` D-06 · D-07.

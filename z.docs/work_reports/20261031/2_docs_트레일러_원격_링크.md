@@ -44,3 +44,5 @@ implements: [20261030-p00-plan-remaining-build]
 - README 의 네 링크는 GitHub 저장소를 만들기 전에 넣었다 — 첫 푸시 뒤(P00 S5) 공개 화면에서 열리는지 본다.
 - `4aa5df9` 이전 커밋의 트레일러 `Claude Fable 5.1` 은 고정 문구라 실제 모델과 다를 수 있고, 고치지 않는다(G-13).
 - 이 저장소는 작성자 재작성(`_공통` G-16, 2026-10-31) 대상이 아니다 — 처음부터 noreply 라 해시가 그대로다.
+
+**추기 2026-10-31(P00 종결)**: `z.docs/dev/csharp_coding_standards.md` 끝 「원문 · 결정 경위」 줄의 검토서 경로를 Planning `z.completed/P00_환경_체계_로깅/01_검토/검토서_20261030_코딩표준.md` 로 고쳤다 — P00 과제 폴더를 `z.completed/` 로 옮겨서다. 정본 `_템플릿/Unity_csharp_coding_standards.md` 를 같이 고쳐 `cmp` 같음. 이 추기와 같은 커밋이다. 문서 검사 오류 0.

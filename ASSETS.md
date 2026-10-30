@@ -8,6 +8,8 @@
 |---|---|---|---|---|---|
 | `.gitignore` | [github/gitignore `Unity.gitignore`](https://github.com/github/gitignore/blob/main/Unity.gitignore) 커밋 `301e18631acc` | CC0-1.0 | 끝에 이 저장소 줄(`.DS_Store` · `.vscode/` · 서명 자료 · `com.unity.pipeline` 빌드 임시 에셋)을 덧붙임 | 아님 | 2026-10-30 |
 | `Assets/Settings/`(빌드 프로필 제외) · `Assets/Scenes/SampleScene.unity` · `Assets/TutorialInfo/` · `Assets/Readme.asset` · `Assets/InputSystem_Actions.inputactions` | Unity 6000.3.27f1 프로젝트 템플릿 「Universal 3D」(`com.unity.template.urp-blank` 17.1.0)이 만든 파일 | [Unity Companion License](http://www.unity3d.com/legal/licenses/Unity_Companion_License)(템플릿 패키지 `LICENSE.md`) | 손으로 고친 값 없음. 17.3 에디터가 열 때 · 빌드할 때 다시 저장 — URP 에셋(`PC_RPAsset` · `Mobile_RPAsset`) 에셋 버전 12→13 · 새 필드 · 셰이더 프리필터, `UniversalRenderPipelineGlobalSettings` 설정 목록, `DefaultVolumeProfile` 새 필드와 스크립트가 없는 볼륨 컴포넌트 참조 2개(`OutlineVolumeComponent` · `OasisFogVolumeComponent`) 제거 | 아님 | 2026-10-30 |
+| `z.docs/dev/csharp_coding_standards.md` | Planning 정본 `../z.docs/Defense.Planning/_템플릿/Unity_csharp_coding_standards.md` 의 사본. 규칙 체계는 EasyCheck.Server 의 C# 코딩 표준(사용자 작성, POCU C# 코딩 표준 계열 — `docs.popekim.com`)에서 왔고 Unity 판 문장은 새로 썼다(Planning P00 검토서 2026-10-30 · D-06 · D-07) | 이 저장소 `LICENSE`(MIT). 원문 문장을 그대로 옮긴 것 없음 — POCU 표준 자체의 이용 조건은 확인하지 않음(작업 보고 6절) | 정본과 diff 0 | AI 생성(Claude Code · Fable 5.1 — 사용자 결정 14 · 확인) | 2026-10-30 |
+| `.editorconfig` | Planning 정본 `../z.docs/Defense.Planning/_템플릿/Unity_.editorconfig` 의 사본. 세션이 표준 §1 · §2 · §4 · §5 에 맞춰 작성 | 이 저장소 `LICENSE`(MIT) | 정본과 diff 0 | AI 생성(Claude Code · Fable 5.1) | 2026-10-30 |
 
 ## 추가 패키지
 

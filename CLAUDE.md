@@ -35,12 +35,10 @@ Defense 게임의 Unity 6 · URP 프로젝트이자 공개 포트폴리오 저�
 - 서브에이전트는 코드 · 컴파일 · EditMode 테스트까지. 에디터 · 빌드는 주 세션.
 
 ## 코딩 (C# · Unity)
-- 폴더: `Assets/_Project/Core/`(게임 무관 — 다른 게임이 복사해 간다, G-07) · `Assets/_Project/Defense/`(이 게임) · `Assets/_Project/Data/`(ScriptableObject 에셋) · `Assets/_Project/Art/` · `Assets/ThirdParty/`(외부 에셋 — `ASSETS.md` 장부 필수). 테스트는 `Assets/_Project/Tests/EditMode` · `PlayMode`.
-- 어셈블리: 폴더마다 asmdef. **Core 는 Defense 를 참조하지 않는다.**
-- 이름: 네임스페이스 `Defense.Core.*` · `Defense.Game.*`, 타입 · 메서드 · 속성 PascalCase, 비공개 필드 `_camelCase`, 인스펙터 노출은 `[SerializeField] private`. 공개 필드 금지.
-- 하드코딩 금지 — 밸런스 수치는 ScriptableObject(`*Def` · `WaveCurve`), 문자열은 문자열 표, 레이어 · 태그는 상수 클래스 하나.
-- 성능: 적 · 투사체마다 `Update` 를 두지 않고 시스템 하나가 배열로 처리한다. 런 중 `Instantiate` · `Destroy` 대신 풀. 매 프레임 할당(LINQ · 박싱 · 문자열 결합 · 클로저) 금지. `FindObjectOfType` · `GetComponent` 를 루프에서 부르지 않는다. `Camera.main` 은 캐시.
-- 주석: 공개 타입 · 메서드에 `///` 요약. 람다는 그 블록의 역할 한 줄. 수정 이력은 파일 헤더가 아니라 작업 보고서 · 커밋에.
+규칙의 정본은 **`z.docs/dev/csharp_coding_standards.md`**(C# 코딩 표준 — Unity, Planning 정본 `../z.docs/Defense.Planning/_템플릿/Unity_csharp_coding_standards.md`)다. 여기는 폴더 · 어셈블리 · 자주 어기는 금지만 두고 같은 규칙을 두 곳에 적지 않는다. 서식은 `.editorconfig`(정본 `../z.docs/Defense.Planning/_템플릿/Unity_.editorconfig`).
+- 폴더: `Assets/_Project/Core/`(asmdef `Devman.Core` — 다른 게임에서 수정 없이 쓰는 것, 다음 게임이 복사해 간다 G-07) · `Assets/_Project/Defense/`(asmdef `Defense.Game` — 이 게임 규칙) · `Assets/_Project/Data/`(ScriptableObject 에셋) · `Assets/_Project/Art/` · `Assets/_Project/Scenes/` · `Assets/_Project/Audio/` · `Assets/ThirdParty/`(외부 에셋 — `ASSETS.md` 장부 필수). 테스트는 어셈블리마다 짝 — `Assets/_Project/Core/Tests/EditMode/`(asmdef `Devman.Core.Tests.EditMode`, 코어와 같이 복사) · `Assets/_Project/Tests/EditMode/`(`Defense.Tests.EditMode`) · `Assets/_Project/Tests/PlayMode/`(`Defense.Tests.PlayMode`). 에디터 코드는 `Editor/` + 에디터 asmdef.
+- 어셈블리: 코드 폴더마다 asmdef, 이름 = 루트 네임스페이스. **Core 는 Game 을 참조하지 않는다.** 코어 · 게임 경계는 표준 §1.
+- 자주 어기는 금지(표준 절): 코드에 박힌 밸런스 수치 · 문구(§8) · 런 중 `Instantiate` · `Destroy` · 개체마다 `Update` · 매 프레임 할당(§5 · §7 · §9) · `UnityEngine.Object` 에 `?.` · `??`(§6) · 저장 DTO 에 프로퍼티(§12) · 핫패스 `Debug.Log`(§13) · 싱글톤 · `Find*`(§7) · 파일 헤더 이력(§2).
 - 외부 패키지는 MIT · Apache · CC0 등 재배포 가능한 것만, `Packages/manifest.json` 변경은 승인 지점이고 `ASSETS.md` 에 적는다. Asset Store 에셋은 커밋하지 않는다.
 
 ## 결정론 게이트 (커밋 전)
@@ -70,10 +68,7 @@ Defense 게임의 Unity 6 · URP 프로젝트이자 공개 포트폴리오 저�
 
 ## 검토 기준
 코드 리뷰 센서가 diff 에 대조하는 이 저장소의 실패 유형. 반복 지적은 테스트 · 분석기로 내리고 여기서 지운다. 10줄을 넘기면 `z.docs/dev/review_criteria.md` 로.
-- 저장 데이터: 포맷 버전 필드를 올리지 않고 필드를 바꾸지 않는다. 이전 버전 변환 테스트가 있다.
-- 재화 · 업그레이드 수치: 코드 상수가 아니라 데이터 에셋. 바뀌면 작업 보고에 전후 값.
-- 시간: 게임 로직은 `Time.deltaTime`(일시정지 · 가속 반영), UI 연출만 `unscaledDeltaTime`.
-- 풀: 꺼낸 객체는 상태를 초기화하고, 돌려준 객체를 계속 참조하지 않는다.
+- 코딩 표준 `z.docs/dev/csharp_coding_standards.md` 전체 — 특히 §12 저장(포맷 버전 · 변환 테스트) · §8 재화 수치(데이터 에셋 · 전후 값) · §10 시간 · §9 풀 · §6 null. 지적은 표준 절 번호로. 아래는 표준이 못 담는 이 저장소 고유 실패만.
 - 빌드 프로필: `Assets/Settings/Build Profiles/*.asset` 이 PlayerSettings 사본(`m_PlayerSettingsYaml.m_Settings` 가 빈 배열이 아님)을 품지 않는다 — 품으면 `ProjectSettings/` 를 바꿔도 그 프로필 빌드에 반영되지 않는다.
 - 플레이어 원격 실행 차단: `ProjectSettings.asset` 의 `scriptingDefineSymbols` 와 빌드 프로필 `m_ScriptingDefines` 에 `ENABLE_RUNTIME_PIPELINE` · `ENABLE_RUNTIME_PIPELINE_DEV` 를 넣지 않는다 — 넣으면 `com.unity.pipeline` 의 명령 실행 서버가 플레이어 빌드에 들어간다(패키지 `Documentation~/runtime-setup.md`).
 
@@ -82,4 +77,5 @@ Defense 게임의 Unity 6 · URP 프로젝트이자 공개 포트폴리오 저�
 - 마일스톤: `z.docs/dev/milestone/NN_slug/milestone.md`(`DEF-Mnn`)
 - 작업 보고서: `z.docs/work_reports/{yyyyMMdd}/*`
 - 에셋 장부: `ASSETS.md`
+- 코딩 표준: `z.docs/dev/csharp_coding_standards.md`(정본 `../z.docs/Defense.Planning/_템플릿/Unity_csharp_coding_standards.md`) · 서식 `.editorconfig`(정본 `../z.docs/Defense.Planning/_템플릿/Unity_.editorconfig`)
 - Unity 버전: `ProjectSettings/ProjectVersion.txt`(6000.3.27f1)

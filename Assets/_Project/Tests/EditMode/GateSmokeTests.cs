@@ -13,8 +13,8 @@ namespace Defense.Tests.EditMode
         [Test]
         public void CoreAssembly_IsLoadable()
         {
-            Assembly core = Assembly.Load("Defense.Core");
-            Assert.That(core.GetName().Name, Is.EqualTo("Defense.Core"));
+            Assembly core = Assembly.Load("Devman.Core");
+            Assert.That(core.GetName().Name, Is.EqualTo("Devman.Core"));
         }
     }
 }

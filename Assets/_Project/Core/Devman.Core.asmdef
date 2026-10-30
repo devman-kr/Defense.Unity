@@ -1,6 +1,6 @@
 {
-    "name": "Defense.Core",
-    "rootNamespace": "Defense.Core",
+    "name": "Devman.Core",
+    "rootNamespace": "Devman.Core",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

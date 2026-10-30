@@ -1,0 +1,29 @@
+# 텍스트는 LF 로 정규화한다(씬 · 프리팹 · 에셋은 Force Text YAML).
+* text=auto eol=lf
+
+# 바이너리 — 줄 끝 변환 · diff 를 하지 않는다. git LFS 는 쓰지 않는다(Planning P00 D-05).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.psd binary
+*.tga binary
+*.tif binary
+*.tiff binary
+*.exr binary
+*.hdr binary
+*.fbx binary
+*.blend binary
+*.glb binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.mp4 binary
+*.ttf binary
+*.otf binary
+*.dll binary
+*.so binary
+*.a binary
+*.aar binary
+*.jar binary
+*.unitypackage binary

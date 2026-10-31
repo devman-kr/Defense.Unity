@@ -7,8 +7,9 @@ using UnityEngine.SceneManagement;
 namespace Defense.Editor.P03
 {
     /// <summary>
-    /// P03 샘플 씬을 처음부터 다시 만든다 — 잔디 원판 섬 · 중앙 등불 탑 · 탑을 보는 슬라임 8 · 탑 둘레를 도는 박쥐 4 ·
-    /// 세로 9:16 탑다운 사선 카메라 · 방향광 + 등불 점광. 모델은 bake_space_transform 변형(`_bst`)을 쓴다.
+    /// P03 샘플 씬을 처음부터 다시 만든다 — 잔디 원판 섬 · 중앙 등불 탑 · 탑을 보는 슬라임 8 · 탑 둘레 공중의 박쥐 4 ·
+    /// 세로 9:16 탑다운 사선 카메라 · 방향광 + 등불 점광. 머티리얼은 모델과 섬 모두 팔레트 하나(`palette.mat`).
+    /// 모델은 bake_space_transform 변형(`_bst`)을 쓴다 — 기본 변형의 탑은 축 보정 X 270° 가 루트에 있어 루트 회전을 정하면 눕는다.
     /// </summary>
     public static class P03SampleSceneBuilder
     {
@@ -21,9 +22,10 @@ namespace Defense.Editor.P03
         public const string BAT_MODEL_PATH = P03ModelImport.FOLDER + "/bat_bst.fbx";
 
         private const string TOWER_MODEL_PATH = P03ModelImport.FOLDER + "/tower_bst.fbx";
-        private const string ISLAND_MATERIAL_PATH = P03ModelImport.FOLDER + "/island.mat";
-        private const string LIT_SHADER_PATH = "Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader";
+        private const string ISLAND_MESH_PATH = P03ModelImport.FOLDER + "/island.asset";
 
+        private const int PALETTE_SIZE = 4;
+        private const int GRASS_PALETTE_CELL = 12;
         private const float ISLAND_DIAMETER_METERS = 13f;
         private const float ISLAND_THICKNESS_METERS = 0.5f;
         private const int SLIME_COUNT = 8;
@@ -33,7 +35,6 @@ namespace Defense.Editor.P03
         private const float BAT_RADIUS_METERS = 2.4f;
         private const float BAT_LOW_HEIGHT_METERS = 1.35f;
         private const float BAT_HIGH_HEIGHT_METERS = 1.65f;
-        private const float GRASS_SMOOTHNESS = 0.1f;
         private const float SUN_PITCH_DEGREES = 50f;
         private const float SUN_YAW_DEGREES = -30f;
         private const float SUN_INTENSITY = 1.1f;
@@ -45,8 +46,7 @@ namespace Defense.Editor.P03
         private const float CAMERA_DISTANCE_METERS = 19f;
         private const float CAMERA_TARGET_HEIGHT_METERS = 0.5f;
 
-        // 팔레트 셀 12(잔디) · 11(등불)과 같은 sRGB 값 — Blender 스크립트 PAL 표
-        private static readonly Color GRASS_COLOR = new Color(0.55f, 0.78f, 0.36f);
+        // 팔레트 셀 11(등불)과 같은 sRGB 값 — Blender 스크립트 PAL 표
         private static readonly Color LAMP_COLOR = new Color(1.00f, 0.86f, 0.40f);
         private static readonly Color SKY_COLOR = new Color(0.62f, 0.80f, 0.93f);
         private static readonly Color AMBIENT_COLOR = new Color(0.52f, 0.56f, 0.66f);
@@ -73,24 +73,44 @@ namespace Defense.Editor.P03
 
         private static void CreateIsland(Transform parent)
         {
-            Material grass = AssetDatabase.LoadAssetAtPath<Material>(ISLAND_MATERIAL_PATH);
-            if (grass == null)
-            {
-                grass = new Material(AssetDatabase.LoadAssetAtPath<Shader>(LIT_SHADER_PATH));
-                AssetDatabase.CreateAsset(grass, ISLAND_MATERIAL_PATH);
-            }
-            grass.SetColor("_BaseColor", GRASS_COLOR);
-            grass.SetFloat("_Smoothness", GRASS_SMOOTHNESS);
-            EditorUtility.SetDirty(grass);
-            AssetDatabase.SaveAssets();
-
             GameObject island = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             island.name = "Island";
             island.transform.SetParent(parent, false);
             // 실린더 프리미티브는 높이 2 · 지름 1 — 윗면이 y = 0 이 되게 내린다
             island.transform.localScale = new Vector3(ISLAND_DIAMETER_METERS, ISLAND_THICKNESS_METERS * 0.5f, ISLAND_DIAMETER_METERS);
             island.transform.localPosition = new Vector3(0f, -ISLAND_THICKNESS_METERS * 0.5f, 0f);
-            island.GetComponent<MeshRenderer>().sharedMaterial = grass;
+            MeshFilter filter = island.GetComponent<MeshFilter>();
+            filter.sharedMesh = SaveGrassCellMesh(filter.sharedMesh);
+            Material palette = AssetDatabase.LoadAssetAtPath<Material>(P03ModelImport.PALETTE_MATERIAL_PATH);
+            Debug.Assert(palette != null, "팔레트 머티리얼이 없다 — P03ModelImport.Apply 를 먼저: " + P03ModelImport.PALETTE_MATERIAL_PATH);
+            island.GetComponent<MeshRenderer>().sharedMaterial = palette;
+        }
+
+        // 프리미티브 UV 는 팔레트 전체(0~1)를 덮는다 — 모든 UV 를 잔디 셀 중심으로 모은 사본을 에셋으로 둔다(이미 있으면 GUID 를 지키며 덮어쓴다)
+        private static Mesh SaveGrassCellMesh(Mesh primitive)
+        {
+            Mesh mesh = Object.Instantiate(primitive);
+            mesh.name = "island";
+            Vector2 cellCenter = new Vector2(
+                (GRASS_PALETTE_CELL % PALETTE_SIZE + 0.5f) / PALETTE_SIZE,
+                (GRASS_PALETTE_CELL / PALETTE_SIZE + 0.5f) / PALETTE_SIZE);
+            Vector2[] uv = new Vector2[mesh.vertexCount];
+            for (int i = 0; i < uv.Length; ++i)
+            {
+                uv[i] = cellCenter;
+            }
+            mesh.uv = uv;
+
+            Mesh existing = AssetDatabase.LoadAssetAtPath<Mesh>(ISLAND_MESH_PATH);
+            if (existing == null)
+            {
+                AssetDatabase.CreateAsset(mesh, ISLAND_MESH_PATH);
+                return mesh;
+            }
+            EditorUtility.CopySerialized(mesh, existing);
+            Object.DestroyImmediate(mesh);
+            AssetDatabase.SaveAssets();
+            return existing;
         }
 
         private static void CreateSlimes(Transform parent)
@@ -118,7 +138,7 @@ namespace Defense.Editor.P03
                 float height = i % 2 == 0 ? BAT_LOW_HEIGHT_METERS : BAT_HIGH_HEIGHT_METERS;
                 Vector3 outward = new Vector3(Mathf.Sin(angle), 0f, Mathf.Cos(angle));
                 Vector3 position = outward * BAT_RADIUS_METERS + Vector3.up * height;
-                // 탑 둘레를 시계 반대 방향으로 도는 접선 방향
+                // 위에서 볼 때 시계 방향 접선을 본다 — 녹화에서는 자리에 머물고 날갯짓만 한다
                 Quaternion facing = Quaternion.LookRotation(Vector3.Cross(Vector3.up, outward), Vector3.up);
                 InstantiateModel(BAT_MODEL_PATH, "Bat" + (i + 1).ToString("00"), group, position, facing);
             }

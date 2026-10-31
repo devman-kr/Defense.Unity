@@ -1,0 +1,32 @@
+[
+ {
+  "id": "agent-a4b45a087d56b80f6",
+  "description": "P03 2라운드 센서(수정 커밋)",
+  "model_requested": "opus",
+  "model": "claude-opus-5-5",
+  "start_kst": "2026-10-31 22:41:05",
+  "end_kst": "2026-10-31 22:47:33",
+  "tool_calls": 26,
+  "cache_creation": 295798,
+  "input": 76,
+  "output": 82580,
+  "cache_read": 3156795,
+  "new_tokens": 378454,
+  "final_source": "SubagentHandback"
+ },
+ {
+  "id": "agent-ae9c8cc00cce2131b",
+  "description": "P03 세션 센서 리뷰(읽기 전용)",
+  "model_requested": "opus",
+  "model": "claude-opus-5-5",
+  "start_kst": "2026-10-31 22:24:56",
+  "end_kst": "2026-10-31 22:37:22",
+  "tool_calls": 27,
+  "cache_creation": 428497,
+  "input": 89,
+  "output": 148984,
+  "cache_read": 4241347,
+  "new_tokens": 577570,
+  "final_source": "SubagentHandback"
+ }
+]

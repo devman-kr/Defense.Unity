@@ -1,12 +1,12 @@
 ---
 id: 20261030-unity-assets-ledger
 title: ASSETS — 외부 파일 장부
-summary: Defense.Unity 에 든 외부 파일(.gitignore · Unity 6000.3.27f1 Universal 3D 템플릿 산출물 · 코딩 표준 사본 · .editorconfig)과 추가 패키지 com.unity.pipeline · newtonsoft-json 의 출처 · 라이선스 · AI 생성 여부를 적은 장부다.
+summary: Defense.Unity 에 든 외부 파일(.gitignore · Unity 6000.3.27f1 Universal 3D 템플릿 산출물 · 코딩 표준 사본 · .editorconfig · Tools/Blender 의 GPL 스크립트 · LICENSE 원문)과 추가 패키지 com.unity.pipeline · newtonsoft-json 의 출처 · 라이선스 · AI 생성 여부 장부.
 doc_type: register
 status: final
 lifecycle: living
 created: 2026-10-30
-updated: 2026-10-30
+updated: 2026-10-31
 ---
 # ASSETS — 외부 파일 장부
 
@@ -20,6 +20,8 @@ updated: 2026-10-30
 | `Assets/Settings/`(빌드 프로필 제외) · `Assets/Scenes/SampleScene.unity` · `Assets/TutorialInfo/` · `Assets/Readme.asset` · `Assets/InputSystem_Actions.inputactions` | Unity 6000.3.27f1 프로젝트 템플릿 「Universal 3D」(`com.unity.template.urp-blank` 17.1.0)이 만든 파일 | [Unity Companion License](http://www.unity3d.com/legal/licenses/Unity_Companion_License)(템플릿 패키지 `LICENSE.md`) | 손으로 고친 값 없음. 17.3 에디터가 열 때 · 빌드할 때 다시 저장 — URP 에셋(`PC_RPAsset` · `Mobile_RPAsset`) 에셋 버전 12→13 · 새 필드 · 셰이더 프리필터, `UniversalRenderPipelineGlobalSettings` 설정 목록, `DefaultVolumeProfile` 새 필드와 스크립트가 없는 볼륨 컴포넌트 참조 2개(`OutlineVolumeComponent` · `OasisFogVolumeComponent`) 제거 | 아님 | 2026-10-30 |
 | `z.docs/dev/csharp_coding_standards.md` | Planning 정본 `../z.docs/Defense.Planning/_템플릿/Unity_csharp_coding_standards.md` 의 사본. 규칙 체계는 EasyCheck.Server 의 C# 코딩 표준(사용자 작성, POCU C# 코딩 표준 계열 — `docs.popekim.com`)에서 왔고 Unity 판 문장은 새로 썼다(Planning P00 검토서 2026-10-30 · D-06 · D-07) | 이 저장소 `LICENSE`(MIT). 원문 문장을 그대로 옮긴 것 없음 — POCU 표준 자체의 이용 조건은 확인하지 않음(작업 보고 6절) | 정본과 diff 0 | AI 생성(Claude Code · Fable 5.1 — 사용자 결정 14 · 확인) | 2026-10-30 |
 | `.editorconfig` | Planning 정본 `../z.docs/Defense.Planning/_템플릿/Unity_.editorconfig` 의 사본. 세션이 표준 §1 · §2 · §4 · §5 에 맞춰 작성 | 이 저장소 `LICENSE`(MIT) | 정본과 diff 0 | AI 생성(Claude Code · Fable 5.1) | 2026-10-30 |
+| `Tools/Blender/make_enemies.py` | 이 저장소에서 작성(Planning P03 S0 — D-09 · `_공통` G-17). 창 없는 Blender 5.2.3 이 슬라임 · 박쥐 · 등불 탑을 팔레트 UV · 뼈대 · 동작과 함께 FBX 로 낸다 | GPL-3.0-or-later(`Tools/Blender/LICENSE` — Blender Python API 를 쓰는 스크립트는 공개하면 GPL. 만든 FBX · PNG 는 영향 없음) | — | AI 생성(Claude Code · Fable 5.1) | 2026-10-31 |
+| `Tools/Blender/LICENSE` | [GNU GPL v3 원문](https://www.gnu.org/licenses/gpl-3.0.txt)(FSF) — SHA-256 `3972dc97…b36986` | 원문 자체의 조건(누구나 그대로 복제 · 배포 가능, 변경 금지) | 없음 | 아님 | 2026-10-31 |
 
 ## 추가 패키지
 

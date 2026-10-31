@@ -142,7 +142,7 @@ Defense(Lantern Rush!)와 뒤이은 게임들의 Unity C# 규칙이다. EasyChec
 
 1. 밸런스 수치 · 사용자 문구 · 색 · 곡선은 코드가 아니라 **데이터 에셋**(ScriptableObject `*Def` · `*Curve`)에. 코드에 박힌 수치는 지적 대상(ECON).
 2. 기획 데이터 표(`Defense.Design/데이터/` — P01 S1 에서 만든다)의 열 = 에셋 필드(이름 · 단위 · 순서, §1.3). **표에 없는 수치는 코드에도 없다.** 표와 에셋이 다르면 CONTRACT. 재화 · 영구 강화 · 해금(K5)은 고위험 — 바꾸면 보고에 전후 값.
-3. 클래스에 `[CreateAssetMenu(menuName = "Defense/<영역>/<이름>")]`, 에셋은 `Assets/_Project/Data/<영역>/`.
+3. 클래스에 `[CreateAssetMenu(menuName = "Defense/<영역>/<이름>")]`, 에셋은 `Assets/30_Assets/Data/<영역>/`.
 4. **런타임에 에셋을 바꾸지 않는다** — 읽기 전용. 런 중 변하는 값은 런타임 객체(POCO)로 복사해 쓴다.
    — 왜: 에디터에서는 플레이 모드에 쓴 값도 에셋에 저장돼 다음 플레이에 남고, 플레이어에서는 읽기만 되어 두 환경의 동작이 달라진다(근거 6).
 5. 필드에 `[Min]` · `[Range]` · `[Tooltip]`. 검증은 `OnValidate` 와 EditMode 테스트(모든 `*Def` 를 로드해 범위 · 표 대조, §15.3).
@@ -243,16 +243,16 @@ Defense(Lantern Rush!)와 뒤이은 게임들의 Unity C# 규칙이다. EasyChec
 
 ## 17. 에셋 이름
 
-접두 없이 PascalCase 하나. 종류는 폴더와 접미가 말한다. 띄어쓰기 · 한글 · 특수문자 없음(명령줄 · WebGL 경로). 변형은 `_접미` 하나만. 기준 폴더는 `Assets/_Project/`(목록은 `CLAUDE.md` 「코딩」).
+접두 없이 PascalCase 하나. 종류는 폴더와 접미가 말한다. 띄어쓰기 · 한글 · 특수문자 없음(명령줄 · WebGL 경로). 변형은 `_접미` 하나만. 기준 폴더는 `Assets/` 의 번호 폴더 — `00_Scenes` · `10_Scripts` · `20_Animations` · `30_Assets`(목록은 `CLAUDE.md` 「코딩」, Planning P03 D-09).
 
 | 종류 | 폴더 | 예 |
 |---|---|---|
-| 데이터 에셋 | `Data/<영역>/` | `Data/Weapons/Lantern.asset`(클래스 `WeaponDef`) · `Data/Curves/Night.asset` |
-| 프리팹 | `Defense/<영역>/` | `EnemyGrunt.prefab` · 변형 `EnemyGrunt_Elite.prefab` |
-| 씬 | `Scenes/` | `Boot.unity` · `Island.unity` · `Night.unity` |
-| 모델 · 머티리얼 · 텍스처 | `Art/<영역>/` | `TowerBase.fbx` · `TowerBase.mat` · `Palette.png` — 같은 대상은 같은 이름 |
-| 애니메이션 | `Art/<영역>/` | `EnemyGrunt_Walk.anim` |
-| 오디오 | `Audio/Sfx/` · `Audio/Music/` | `Hit.wav` · `Night.ogg` |
+| 데이터 에셋 | `30_Assets/Data/<영역>/` | `Data/Weapons/Lantern.asset`(클래스 `WeaponDef`) · `Data/Curves/Night.asset` |
+| 프리팹 | `30_Assets/Prefabs/<영역>/` | `EnemyGrunt.prefab` · 변형 `EnemyGrunt_Elite.prefab` |
+| 씬 | `00_Scenes/` | `Boot.unity` · `Island.unity` · `Night.unity` |
+| 모델 · 머티리얼 · 텍스처 | `30_Assets/Models/<영역>/`(머티리얼 · 텍스처는 모델 옆, 공용은 `Materials/` · `Textures/`) | `TowerBase.fbx` · `TowerBase.mat` · `Palette.png` — 같은 대상은 같은 이름 |
+| 애니메이션 | `20_Animations/<영역>/` | `EnemyGrunt_Walk.anim` · `Enemy.controller` |
+| 오디오 | `30_Assets/Audio/Sfx/` · `30_Assets/Audio/Music/` | `Hit.wav` · `Night.ogg` |
 
 1. 외부 에셋은 원본 이름을 유지하고 `ASSETS.md` 에 적는다(출처 추적).
 

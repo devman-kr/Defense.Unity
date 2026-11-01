@@ -6,7 +6,7 @@ doc_type: guide
 status: final
 lifecycle: living
 created: 2026-10-31
-updated: 2026-10-31
+updated: 2026-11-01
 ---
 # Tools/Blender — 창 없는 Blender 로 로우폴리 모델을 만드는 스크립트
 
@@ -30,4 +30,4 @@ Blender -b --factory-startup -noaudio --python-exit-code 1 --python Tools/Blende
 
 | 파일 | 만드는 것 | 비고 |
 |---|---|---|
-| `make_enemies.py` | 슬라임(뼈 2 · Idle · Hop · Hit · Die) · 박쥐(뼈 3 · Flap · Hit) · 등불 탑(정적) · 팔레트 4×4 | Planning P03 의 시작판(2026-10-31) — 알려진 결함 둘(박쥐 날개 팔레트 셀 · 날갯짓 회전축)은 P03 실행 세션이 고친다 |
+| `make_enemies.py` | 슬라임(뼈 2 · Idle · Hop · Hit · Die) · 박쥐(뼈 3 · Flap · Hit) · 등불 탑(정적) · 팔레트 4×4 | Planning P03 S2(Opus 5.5, `a5a2a5c`)가 다듬은 판 — 박쥐 날개 UV 층을 `UVMap` 으로 맞춰 팔레트 셀 6 이 나오고, 「날갯짓 회전축」은 결함이 아니라 사선 카메라의 원근 착시라 박쥐 렌더만 정면 카메라로 바꿨다(`P03_RESULT.deform` 의 `tip_z_l` = `tip_z_r`). `Material.use_nodes` · `World.use_nodes` 는 Blender 6.0 에서 제거 예정(경고) |

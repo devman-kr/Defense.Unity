@@ -6,7 +6,7 @@ doc_type: work_report
 status: final
 lifecycle: static
 created: 2026-10-31
-updated: 2026-10-31
+updated: 2026-11-01
 work_unit: P03
 work_type: refactor
 commits: [7f88bef, 1f87826]
@@ -20,7 +20,7 @@ implements: [20261031-p03-plan-cli-pipeline]
 | 항목 | 내용 |
 |------|------|
 | 작업일 | 2026-10-31 (Mac M5 16 GB, Claude Fable 5.1 — Planning P03 계획 세션 a3a90bb0) |
-| 근거 | Planning P03 [계획서](../../../../z.docs/Defense.Planning/P03_CLI_환경테스트/02_계획/계획서_20261031.md) S0 · 결정기록 D-09(번호 폴더 · `Tools/Blender/`) · D-10(S0 는 계획 세션이) · `_공통` G-17(bpy 스크립트 폴더는 GPL). 계획 제시 뒤 사용자 승인 「승인 — 센서는 생략」(2026-10-31) |
+| 근거 | Planning P03 [계획서](../../../../z.docs/Defense.Planning/z.completed/P03_CLI_환경테스트/02_계획/계획서_20261031.md) S0 · 결정기록 D-09(번호 폴더 · `Tools/Blender/`) · D-10(S0 는 계획 세션이) · `_공통` G-17(bpy 스크립트 폴더는 GPL). 계획 제시 뒤 사용자 승인 「승인 — 센서는 생략」(2026-10-31) |
 | 위험 등급 | 저 — 파일 이동(git mv, 코드 내용 변경 없음) · 마크다운 · `Assets/` 밖 Python 스크립트 · 라이선스 원문. 고위험 경로(`ProjectSettings/` · `Packages/` · 저장 · 재화) 변경 없음 |
 | 증거 ① 게이트 | 에디터 닫힘 경로 `unity test . --mode EditMode --output Logs/editmode-results.xml --timeout 900 -- -logFile Logs/gate-editmode.log` → 종료 0 · 10.3초 · `grep -E 'warning CS\|error CS' Logs/gate-editmode.log` 0줄 · `editmode-results.xml` `result="Passed" total="2" passed="2" failed="0"`(이동 뒤 실행 — 스크립트가 옮겨져 컴파일이 다시 돌았다). 문서 검사 `fm_lint.py --strict Defense _공통 CLAUDE.md` 오류 0 |
 | 증거 ② 상태 | `git status --short` → 빈 출력(이 보고서 커밋 뒤). `cmp CLAUDE.md ../z.docs/Defense.Planning/_템플릿/Unity_CLAUDE.md` · `cmp z.docs/dev/csharp_coding_standards.md …/Unity_csharp_coding_standards.md` → 같음 |

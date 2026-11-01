@@ -50,6 +50,8 @@ if "Specular IOR Level" in bsdf.inputs:
 def set_cell(obj, cell):
     """오브젝트의 모든 면 UV 를 팔레트 셀 하나의 중심으로."""
     me = obj.data
+    if not me.uv_layers:  # from_pydata 메시는 UV 층이 없다 — bmesh 가 만들면 이름이 Float2 라 join 때 UVMap 과 합쳐지지 않는다
+        me.uv_layers.new(name="UVMap")
     bm = bmesh.new()
     bm.from_mesh(me)
     uv = bm.loops.layers.uv.verify()
@@ -307,7 +309,7 @@ bat_acts = {
 res["actions"] = {a.name: [round(x, 1) for x in a.frame_range] for a in bpy.data.actions}
 
 
-def extent(arm, mesh_obj, act, frame):
+def extent(arm, mesh_obj, act, frame, tips=False):
     assign(arm, act)
     scene.frame_set(frame)
     dg = bpy.context.evaluated_depsgraph_get()
@@ -315,6 +317,9 @@ def extent(arm, mesh_obj, act, frame):
     m = ev.to_mesh()
     ps = [ev.matrix_world @ v.co for v in m.vertices]
     r = {"max_z": round(max(p.z for p in ps), 3), "min_z": round(min(p.z for p in ps), 3), "max_x": round(max(p.x for p in ps), 3)}
+    if tips:  # 날개 끝(x 최대 · 최소 정점)의 높이 — 몸을 축으로 대칭이면 두 값이 같다
+        r["tip_z_l"] = round(max(ps, key=lambda p: p.x).z, 3)
+        r["tip_z_r"] = round(min(ps, key=lambda p: p.x).z, 3)
     ev.to_mesh_clear()
     return r
 
@@ -322,7 +327,7 @@ def extent(arm, mesh_obj, act, frame):
 res["deform"] = {
     "slime_hop_f1": extent(slime_arm, slime, slime_acts["Hop"], 1), "slime_hop_f13": extent(slime_arm, slime, slime_acts["Hop"], 13),
     "slime_die_f18": extent(slime_arm, slime, slime_acts["Die"], 18),
-    "bat_flap_f1": extent(bat_arm, bat, bat_acts["Flap"], 1), "bat_flap_f6": extent(bat_arm, bat, bat_acts["Flap"], 6),
+    "bat_flap_f1": extent(bat_arm, bat, bat_acts["Flap"], 1, tips=True), "bat_flap_f6": extent(bat_arm, bat, bat_acts["Flap"], 6, tips=True),
 }
 assign(slime_arm, None)
 assign(bat_arm, None)
@@ -399,7 +404,10 @@ for who, arm, act, f in poses:
     assign(arm, act)
     scene.frame_set(f)
     c = arm.location
-    look((c.x + 2.2, c.y - 2.6, c.z + 1.7), (c.x, c.y, c.z + 0.45))
+    if who == "bat":  # 날갯짓은 정면에서 — 사선 시점은 원근 때문에 대칭 날갯짓이 한쪽만 오르내리는 것처럼 보인다
+        look((c.x, c.y - 2.6, c.z + 0.7), (c.x, c.y, c.z + 0.05))
+    else:
+        look((c.x + 2.2, c.y - 2.6, c.z + 1.7), (c.x, c.y, c.z + 0.45))
     nm = f"render_{who}_{act.name}_f{f:02d}.png"
     renders[nm] = render(os.path.join(out, nm), 480, 480)
     assign(arm, None)

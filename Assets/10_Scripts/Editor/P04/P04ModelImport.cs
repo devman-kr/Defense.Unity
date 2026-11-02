@@ -19,6 +19,8 @@ namespace Defense.Editor.P04
         public const string SLIME_MODEL_PATH = FOLDER + "/Slime.fbx";
         public const string BAT_MODEL_PATH = FOLDER + "/Bat.fbx";
         public const string TOWER_MODEL_PATH = FOLDER + "/Tower.fbx";
+        public const string ARCHER_MODEL_PATH = FOLDER + "/SkeletonArcher.fbx";
+        public const string ZOMBIE_MODEL_PATH = FOLDER + "/Zombie.fbx";
 
         private const string PALETTE_TEXTURE_PATH = FOLDER + "/Palette.png";
         private const string LIT_SHADER_PATH = "Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader";
@@ -28,7 +30,8 @@ namespace Defense.Editor.P04
         private const float PALETTE_SMOOTHNESS = 0.1f;
 
         private static readonly string[] MODEL_PATHS = { SLIME_MODEL_PATH, BAT_MODEL_PATH, TOWER_MODEL_PATH };
-        private static readonly string[] LOOP_CLIP_NAMES = { "Idle", "Hop", "Flap" };
+        private static readonly string[] HUMANOID_MODEL_PATHS = { ARCHER_MODEL_PATH, ZOMBIE_MODEL_PATH };
+        private static readonly string[] LOOP_CLIP_NAMES = { "Idle", "Hop", "Flap", "Walk" };
 
         /// <summary>팔레트 텍스처 · 머티리얼 셋 · 모델 셋을 설정하고, 모델마다 클립 이름과 메시 수(삼각형 · 정점 · 노멀 · 뼈)를 한 줄씩 돌려준다.</summary>
         public static string Apply()
@@ -54,6 +57,39 @@ namespace Defense.Editor.P04
             foreach (string path in MODEL_PATHS)
             {
                 AppendMeshStats(path, report);
+            }
+            return report.ToString();
+        }
+
+        /// <summary>
+        /// 인간형 둘(해골 궁수 · 좀비 — Blender `make_humanoids_smooth.py`)을 매끈 판과 같은 설정에 리그 Generic 으로 가져오고,
+        /// 모델마다 클립 이름 · 리그 · 스킨 메시마다의 수(삼각형 · 정점 · 뼈)를 한 줄씩 돌려준다. 머티리얼 셋은 <see cref="Apply"/> 가 만든 것을 쓴다.
+        /// </summary>
+        public static string ApplyHumanoids()
+        {
+            StringBuilder report = new StringBuilder();
+            Material lit = LoadMaterial("Lit");
+            foreach (string path in HUMANOID_MODEL_PATHS)
+            {
+                ModelImporter importer = (ModelImporter)AssetImporter.GetAtPath(path);
+                Debug.Assert(importer != null, "모델이 없다: " + path);
+                importer.animationType = ModelImporterAnimationType.Generic;
+                ApplyModel(path, lit, report);
+            }
+            foreach (string path in HUMANOID_MODEL_PATHS)
+            {
+                ModelImporter importer = (ModelImporter)AssetImporter.GetAtPath(path);
+                report.Append(path)
+                    .Append(" animationType=").Append(importer.animationType)
+                    .Append(" motionNode=").Append(string.IsNullOrEmpty(importer.motionNodeName) ? "(none)" : importer.motionNodeName)
+                    .Append(" importTangents=").Append(importer.importTangents)
+                    .Append('\n');
+                GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                Debug.Assert(model != null, "모델이 없다: " + path);
+                foreach (SkinnedMeshRenderer skinned in model.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                {
+                    AppendMeshStats(path + ":" + skinned.name, skinned.sharedMesh, skinned.bones.Length, report);
+                }
             }
             return report.ToString();
         }
@@ -124,16 +160,21 @@ namespace Defense.Editor.P04
             Debug.Assert(model != null, "모델이 없다: " + path);
             SkinnedMeshRenderer skinned = model.GetComponentInChildren<SkinnedMeshRenderer>(true);
             Mesh mesh = skinned != null ? skinned.sharedMesh : model.GetComponentInChildren<MeshFilter>(true).sharedMesh;
+            AppendMeshStats(path, mesh, skinned != null ? skinned.bones.Length : 0, report);
+        }
+
+        private static void AppendMeshStats(string label, Mesh mesh, int boneCount, StringBuilder report)
+        {
             long indexCount = 0;
             for (int i = 0; i < mesh.subMeshCount; ++i)
             {
                 indexCount += mesh.GetIndexCount(i);
             }
-            report.Append(path)
+            report.Append(label)
                 .Append(" tris=").Append(indexCount / 3)
                 .Append(" verts=").Append(mesh.vertexCount)
                 .Append(" normals=").Append(mesh.normals.Length)
-                .Append(" bones=").Append(skinned != null ? skinned.bones.Length : 0)
+                .Append(" bones=").Append(boneCount)
                 .Append(" bindposes=").Append(mesh.bindposeCount)
                 .Append(" boneWeights=").Append(mesh.GetAllBoneWeights().Length)
                 .Append('\n');

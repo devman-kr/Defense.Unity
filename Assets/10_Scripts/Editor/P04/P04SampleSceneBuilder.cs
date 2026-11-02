@@ -145,7 +145,7 @@ namespace Defense.Editor.P04
             return root;
         }
 
-        private static void CreateIsland(Transform parent, Vector3 topCenter, Vector3 scale)
+        internal static void CreateIsland(Transform parent, Vector3 topCenter, Vector3 scale)
         {
             GameObject island = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             island.name = "Island";
@@ -197,7 +197,7 @@ namespace Defense.Editor.P04
             }
         }
 
-        private static void CreateLights(Transform parent, bool hasLamp)
+        internal static void CreateLights(Transform parent, bool hasLamp)
         {
             GameObject sun = new GameObject("Sun");
             sun.transform.SetParent(parent, false);
@@ -245,7 +245,7 @@ namespace Defense.Editor.P04
             AddCamera(cameraObject, FACE_CAMERA_FIELD_OF_VIEW);
         }
 
-        private static void AddCamera(GameObject cameraObject, float fieldOfView)
+        internal static void AddCamera(GameObject cameraObject, float fieldOfView)
         {
             Camera camera = cameraObject.AddComponent<Camera>();
             camera.orthographic = false;
@@ -254,7 +254,7 @@ namespace Defense.Editor.P04
             camera.backgroundColor = SKY_COLOR;
         }
 
-        private static GameObject InstantiateModel(string path, string name, Transform parent, Vector3 position, Quaternion rotation)
+        internal static GameObject InstantiateModel(string path, string name, Transform parent, Vector3 position, Quaternion rotation)
         {
             GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             Debug.Assert(model != null, "모델이 없다: " + path);

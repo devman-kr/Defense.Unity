@@ -854,11 +854,6 @@ step("counts", t0)
 # ---------------------------------------------------------------- 7. 저장 · FBX — 먼저 그대로(naive) 내보내 클립 이름 함정을 남기고, 모델 표지 키를 더해 다시(정본)
 t0 = time.time()
 layout = {archer_arm: (1.2, 0, 0), zombie_arm: (2.8, 0, 0)}
-for o, loc in layout.items():
-    o.location = loc
-bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out, "p04_humanoids_smooth.blend"))
-for o in layout:
-    o.location = (0, 0, 0)
 FBX_OPTIONS = dict(use_selection=True, object_types={'ARMATURE', 'MESH'}, use_mesh_modifiers=True, use_mesh_modifiers_render=True,
                    use_subsurf=False, apply_scale_options='FBX_SCALE_ALL', axis_forward='-Z', axis_up='Y',
                    bake_space_transform=True, add_leaf_bones=False, mesh_smooth_type='FACE',
@@ -893,6 +888,8 @@ for _, _, arm, acts in EXPORTS:
 res["fbx_bytes"] = export_all(out)
 for o, loc in layout.items():
     o.location = loc
+# .blend 는 표지 키를 넣은 뒤에 저장한다 — 그 전 상태로 저장하면 .blend 에서 다시 내보낼 때 상대 모델 동작이 섞인다
+bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out, "p04_humanoids_smooth.blend"))
 scene.frame_set(1)
 step("export", t0)
 

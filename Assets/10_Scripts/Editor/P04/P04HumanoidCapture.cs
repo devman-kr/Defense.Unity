@@ -30,8 +30,11 @@ namespace Defense.Editor.P04
         private const string SHOOT_CLIP = "Shoot";
         private const string ATTACK_CLIP = "Attack";
         private const int SHOOT_DRAW_FRAME = 16;
-        private const int SHOOT_MAX_ELBOW_FRAME = 24;
-        private const int WALK_MAX_KNEE_FRAME = 25;
+        // 관절 최대 접힘 프레임 — Blender `P04_RESULT.models.*.joints` 에서 옮긴 값. Blender 동작을 고치면 같이 고친다
+        private const int ARCHER_MAX_ELBOW_FRAME = 24;   // 오른팔꿈치 · Shoot
+        private const int ARCHER_MAX_KNEE_FRAME = 19;    // 왼무릎 · Walk
+        private const int ZOMBIE_MAX_ELBOW_FRAME = 10;   // 왼팔꿈치 · Attack
+        private const int ZOMBIE_MAX_KNEE_FRAME = 25;    // 왼무릎 · Walk
         private static readonly int[] BOW_FRAMES = { 1, 6, 16, 21, 31 };
         private const string BOW_RENDERER_NAME = "SkeletonArcherBow";
         private const string RIG_SUFFIX = "Rig";
@@ -54,13 +57,13 @@ namespace Defense.Editor.P04
             PoseHumanoids(humanoids, clips, clips.Archer[SHOOT_CLIP], ToTime(SHOOT_DRAW_FRAME), clips.Zombie[WALK_CLIP], CAPTURE_TIME_SECONDS);
             Render(smooth.Find(P03SampleSceneBuilder.CAMERA_NAME), Path.Combine(outDir, "P04S2_Portrait_Lit.png"), PORTRAIT_WIDTH, PORTRAIT_HEIGHT, report);
             Render(humanoids.Find(P04HumanoidSceneBuilder.ARCHER_FACE_CAMERA_NAME), Path.Combine(outDir, "P04S2_Close_ArcherFaceBow_Lit.png"), CLOSE_SIZE, CLOSE_SIZE, report);
-            PoseHumanoids(humanoids, clips, clips.Archer[SHOOT_CLIP], ToTime(SHOOT_MAX_ELBOW_FRAME), clips.Zombie[WALK_CLIP], ToTime(WALK_MAX_KNEE_FRAME));
+            PoseHumanoids(humanoids, clips, clips.Archer[SHOOT_CLIP], ToTime(ARCHER_MAX_ELBOW_FRAME), clips.Zombie[WALK_CLIP], ToTime(ZOMBIE_MAX_KNEE_FRAME));
             Render(humanoids.Find(P04HumanoidSceneBuilder.ARCHER_FACE_CAMERA_NAME), Path.Combine(outDir, "P04S2_Close_ArcherShoot24_Lit.png"), CLOSE_SIZE, CLOSE_SIZE, report);
             Render(humanoids.Find(P04HumanoidSceneBuilder.ZOMBIE_SIDE_CAMERA_NAME), Path.Combine(outDir, "P04S2_Close_ZombieWalk25_Lit.png"), CLOSE_SIZE, CLOSE_SIZE, report);
 
             ShowOnly(scene, lineup5);
-            clips.Archer[IDLE_CLIP].SampleAnimation(lineup5.Find("Archer").gameObject, 0f);
-            clips.Zombie[IDLE_CLIP].SampleAnimation(lineup5.Find("Zombie").gameObject, 0f);
+            clips.Archer[IDLE_CLIP].SampleAnimation(lineup5.Find(P04HumanoidSceneBuilder.LINEUP5_ARCHER_NAME).gameObject, 0f);
+            clips.Zombie[IDLE_CLIP].SampleAnimation(lineup5.Find(P04HumanoidSceneBuilder.LINEUP5_ZOMBIE_NAME).gameObject, 0f);
             Render(lineup5.Find(P04HumanoidSceneBuilder.LINEUP5_CAMERA_NAME), Path.Combine(outDir, "P04S2_Lineup5_Lit.png"), LINEUP_WIDTH, LINEUP_HEIGHT, report);
 
             EditorSceneManager.OpenScene(P04SampleSceneBuilder.SCENE_PATH, OpenSceneMode.Single);
@@ -104,32 +107,12 @@ namespace Defense.Editor.P04
             StringBuilder report = new StringBuilder();
             Clips clips = new Clips();
             MeasureModel(P04ModelImport.ARCHER_MODEL_PATH, clips.Archer, report,
-                new JointProbe("ElbowR", "UpperArmR", "ForeArmR", "HandR", SHOOT_CLIP, SHOOT_MAX_ELBOW_FRAME),
-                new JointProbe("KneeL", "ThighL", "ShinL", null, WALK_CLIP, 19));
+                new JointProbe("ElbowR", "UpperArmR", "ForeArmR", "HandR", SHOOT_CLIP, ARCHER_MAX_ELBOW_FRAME),
+                new JointProbe("KneeL", "ThighL", "ShinL", null, WALK_CLIP, ARCHER_MAX_KNEE_FRAME));
             MeasureModel(P04ModelImport.ZOMBIE_MODEL_PATH, clips.Zombie, report,
-                new JointProbe("ElbowL", "UpperArmL", "ForeArmL", "HandL", ATTACK_CLIP, 10),
-                new JointProbe("KneeL", "ThighL", "ShinL", null, WALK_CLIP, WALK_MAX_KNEE_FRAME));
+                new JointProbe("ElbowL", "UpperArmL", "ForeArmL", "HandL", ATTACK_CLIP, ZOMBIE_MAX_ELBOW_FRAME),
+                new JointProbe("KneeL", "ThighL", "ShinL", null, WALK_CLIP, ZOMBIE_MAX_KNEE_FRAME));
             return report.ToString();
-        }
-
-        private readonly struct JointProbe
-        {
-            public readonly string Label;
-            public readonly string Upper;
-            public readonly string Lower;
-            public readonly string End;   // 아래 뼈 꼬리 쪽 자식(손) — 없으면 null(정강이는 FBX 에 끝 뼈가 없다)
-            public readonly string Clip;
-            public readonly int Frame;
-
-            public JointProbe(string label, string upper, string lower, string end, string clip, int frame)
-            {
-                Label = label;
-                Upper = upper;
-                Lower = lower;
-                End = end;
-                Clip = clip;
-                Frame = frame;
-            }
         }
 
         private static void MeasureModel(string path, Dictionary<string, AnimationClip> clips, StringBuilder report, params JointProbe[] probes)
@@ -304,6 +287,26 @@ namespace Defense.Editor.P04
         }
 
         /// <summary>모델 넷의 클립 — 이름(뼈대 접두 · `.NNN` 을 벗긴 것)으로 찾는다.</summary>
+        private readonly struct JointProbe
+        {
+            public readonly string Label;
+            public readonly string Upper;
+            public readonly string Lower;
+            public readonly string End;   // 아래 뼈 꼬리 쪽 자식(손) — 없으면 null(정강이는 FBX 에 끝 뼈가 없다)
+            public readonly string Clip;
+            public readonly int Frame;
+
+            public JointProbe(string label, string upper, string lower, string end, string clip, int frame)
+            {
+                Label = label;
+                Upper = upper;
+                Lower = lower;
+                End = end;
+                Clip = clip;
+                Frame = frame;
+            }
+        }
+
         private sealed class Clips
         {
             public readonly Dictionary<string, AnimationClip> Slime = Load(P04ModelImport.SLIME_MODEL_PATH);

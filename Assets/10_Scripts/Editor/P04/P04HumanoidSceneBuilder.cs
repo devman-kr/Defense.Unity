@@ -19,6 +19,8 @@ namespace Defense.Editor.P04
         public const string ARCHER_FACE_CAMERA_NAME = "ArcherFaceCamera";
         public const string ZOMBIE_SIDE_CAMERA_NAME = "ZombieSideCamera";
         public const string LINEUP5_CAMERA_NAME = "Lineup5Camera";
+        public const string LINEUP5_ARCHER_NAME = "Archer";
+        public const string LINEUP5_ZOMBIE_NAME = "Zombie";
 
         // 배치 — 슬라임은 반지름 3.4 · 4.6 에 22.5° + 45° 간격(P03 구도), 섬 반지름 6.5
         private const int ARCHER_COUNT = 4;
@@ -100,12 +102,12 @@ namespace Defense.Editor.P04
         /// <summary>대상 앞(front) · 오른쪽(side, 대상 기준 +X) · 높이에서 대상의 targetHeight 를 보는 카메라.</summary>
         private static void CreateCloseCamera(Transform parent, string name, Transform subject, float front, float side, float height, float targetHeight)
         {
-            Vector3 target = subject.localPosition + Vector3.up * targetHeight;
-            Vector3 position = subject.localPosition + subject.localRotation * new Vector3(side, 0f, front) + Vector3.up * height;
+            // 월드 좌표로 정한다 — 대상은 묶음(Archers · Zombies) 아래, 카메라는 그 위 루트 아래라 local 값을 섞으면 묶음이 움직였을 때 어긋난다
+            Vector3 target = subject.position + Vector3.up * targetHeight;
+            Vector3 position = subject.position + subject.rotation * new Vector3(side, 0f, front) + Vector3.up * height;
             GameObject cameraObject = new GameObject(name);
             cameraObject.transform.SetParent(parent, false);
-            cameraObject.transform.localPosition = position;
-            cameraObject.transform.localRotation = Quaternion.LookRotation(target - position, Vector3.up);
+            cameraObject.transform.SetPositionAndRotation(position, Quaternion.LookRotation(target - position, Vector3.up));
             P04SampleSceneBuilder.AddCamera(cameraObject, CLOSE_CAMERA_FIELD_OF_VIEW);
         }
 
@@ -119,7 +121,7 @@ namespace Defense.Editor.P04
                 P04ModelImport.SLIME_MODEL_PATH, P04ModelImport.BAT_MODEL_PATH, P04ModelImport.TOWER_MODEL_PATH,
                 P04ModelImport.ARCHER_MODEL_PATH, P04ModelImport.ZOMBIE_MODEL_PATH,
             };
-            string[] names = { "Slime", "Bat", "Tower", "Archer", "Zombie" };
+            string[] names = { "Slime", "Bat", "Tower", LINEUP5_ARCHER_NAME, LINEUP5_ZOMBIE_NAME };
             // 모델 앞(눈)은 +Z — 카메라(-Z 쪽)를 보게 돌린다
             Quaternion facing = Quaternion.LookRotation(Vector3.back, Vector3.up);
             for (int i = 0; i < paths.Length; ++i)

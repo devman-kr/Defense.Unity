@@ -1,5 +1,7 @@
 // 팔레트 텍스처 한 장을 쓰는 셀 셰이더(URP 17) — 주 조명 N·L 과 그림자 감쇠를 2~3단 램프로 끊어 팔레트 색에 곱한다.
-// 추가 조명(등불 점광)은 받지 않는다. 그림자는 주 조명만 받고, 그림자 캐스터 · 깊이 · 깊이 노멀 패스는 URP 기본 패스를 쓴다(알파 테스트 없음).
+// 받는 것: 주 조명 · 주 조명 그림자(거리 페이드 포함) · SSAO(렌더러 기능이 켜져 있을 때) · 앰비언트(SH) · 안개.
+// 받지 않는 것: 추가 조명(등불 점광 — URP Lit 과 셰이딩 비교 때 이 차이가 남는다) · 라이트맵 · 라이트 레이어.
+// 그림자 캐스터 · 깊이 · 깊이 노멀 패스는 URP 기본 패스를 include 한다(알파 테스트 없음).
 Shader "Defense/PaletteCel"
 {
     Properties
@@ -45,6 +47,7 @@ Shader "Defense/PaletteCel"
             #pragma fragment CelFragment
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
 
@@ -94,7 +97,8 @@ Shader "Defense/PaletteCel"
                 half3 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv).rgb * _BaseColor.rgb;
                 half3 normalWS = normalize(input.normalWS);
 
-                Light mainLight = GetMainLight(TransformWorldToShadowCoord(input.positionWS));
+                // 위치 · 그림자 마스크를 넘기는 판이 그림자 거리 끝의 페이드를 한다(URP Lit 과 같은 호출)
+                Light mainLight = GetMainLight(TransformWorldToShadowCoord(input.positionWS), input.positionWS, half4(1.0h, 1.0h, 1.0h, 1.0h));
                 half lightAmount = saturate(dot(normalWS, mainLight.direction)) * mainLight.shadowAttenuation;
                 half low = smoothstep(_LowStep - _StepSoftness, _LowStep + _StepSoftness, lightAmount);
                 half high = smoothstep(_HighStep - _StepSoftness, _HighStep + _StepSoftness, lightAmount);
@@ -103,6 +107,11 @@ Shader "Defense/PaletteCel"
 
                 half3 direct = lerp(_ShadowTint.rgb, half3(1.0h, 1.0h, 1.0h), ramp) * mainLight.color;
                 half3 ambient = SampleSH(normalWS) * _AmbientStrength;
+                #if defined(_SCREEN_SPACE_OCCLUSION)
+                    AmbientOcclusionFactor occlusion = GetScreenSpaceAmbientOcclusion(GetNormalizedScreenSpaceUV(input.positionCS));
+                    direct *= occlusion.directAmbientOcclusion;
+                    ambient *= occlusion.indirectAmbientOcclusion;
+                #endif
                 half3 color = albedo * (direct + ambient);
                 color = MixFog(color, input.fogFactor);
                 return half4(color, 1.0h);

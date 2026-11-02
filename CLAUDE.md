@@ -6,7 +6,7 @@ doc_type: guide
 status: final
 lifecycle: living
 created: 2026-10-29
-updated: 2026-10-31
+updated: 2026-11-02
 ---
 # Defense.Unity
 
@@ -46,7 +46,7 @@ Defense 게임의 Unity 6 · URP 프로젝트이자 공개 포트폴리오 저�
 
 ## 코딩 (C# · Unity)
 규칙의 정본은 **`z.docs/dev/csharp_coding_standards.md`**(C# 코딩 표준 — Unity, Planning 정본 `../z.docs/Defense.Planning/_템플릿/Unity_csharp_coding_standards.md`)다. 여기는 폴더 · 어셈블리 · 자주 어기는 금지만 두고 같은 규칙을 두 곳에 적지 않는다. 서식은 `.editorconfig`(정본 `../z.docs/Defense.Planning/_템플릿/Unity_.editorconfig`).
-- 폴더(번호 폴더 — Planning P03 D-09, 2026-10-31): `Assets/00_Scenes/`(씬) · `Assets/10_Scripts/`(코드 — asmdef 폴더마다: `Core/` asmdef `Devman.Core` — 다른 게임에서 수정 없이 쓰는 것, 다음 게임이 복사해 간다 G-07 · `Defense/` asmdef `Defense.Game` — 이 게임 규칙 · `Editor/` 에디터 코드 + 에디터 asmdef · `Tests/EditMode/`(`Defense.Tests.EditMode`) · `Tests/PlayMode/`(`Defense.Tests.PlayMode`)) · `Assets/20_Animations/`(AnimatorController · `.anim` · Timeline) · `Assets/30_Assets/`(아트 · 소리 · 데이터 · 외부 — `Models/` · `Prefabs/` · `Textures/` · `Materials/` · `Audio/` · `Data/`(ScriptableObject 에셋) · `ThirdParty/`(외부 에셋 — `ASSETS.md` 장부 필수)) · `Assets/Settings/`(URP · 빌드 프로필 — 템플릿 그대로). 코어 테스트는 코어와 짝 — `Assets/10_Scripts/Core/Tests/EditMode/`(asmdef `Devman.Core.Tests.EditMode`, 코어와 같이 복사). 폴더 이름에 공백 · 점을 쓰지 않는다(셸 · `unity command` 인자). Blender `bpy` 스크립트는 저장소 루트 `Tools/Blender/`(그 폴더만 GPL-3.0-or-later — G-17, `LICENSE` · README).
+- 폴더(번호 폴더 — Planning P03 D-09, 2026-10-31): `Assets/00_Scenes/`(씬) · `Assets/10_Scripts/`(코드 — asmdef 폴더마다: `Core/` asmdef `Devman.Core` — 다른 게임에서 수정 없이 쓰는 것, 다음 게임이 복사해 간다 G-07 · `Defense/` asmdef `Defense.Game` — 이 게임 규칙 · `Editor/` 에디터 코드 + 에디터 asmdef · `Tests/EditMode/`(`Defense.Tests.EditMode`) · `Tests/PlayMode/`(`Defense.Tests.PlayMode`)) · `Assets/20_Animations/`(AnimatorController · `.anim` · Timeline) · `Assets/30_Assets/`(아트 · 소리 · 데이터 · 외부 — `Models/` · `Prefabs/` · `Textures/` · `Materials/` · `Shaders/`(코드로 쓴 셰이더 · `.hlsl`, P04) · `Rendering/`(렌더링 데이터 — 램프 텍스처 · 볼륨 프로필, P04) · `Audio/` · `Data/`(ScriptableObject 에셋) · `ThirdParty/`(외부 에셋 — `ASSETS.md` 장부 필수)) · `Assets/Settings/`(URP · 빌드 프로필 — 템플릿 그대로). 코어 테스트는 코어와 짝 — `Assets/10_Scripts/Core/Tests/EditMode/`(asmdef `Devman.Core.Tests.EditMode`, 코어와 같이 복사). 폴더 이름에 공백 · 점을 쓰지 않는다(셸 · `unity command` 인자). Blender `bpy` 스크립트는 저장소 루트 `Tools/Blender/`(그 폴더만 GPL-3.0-or-later — G-17, `LICENSE` · README).
 - 어셈블리: 코드 폴더마다 asmdef, 이름 = 루트 네임스페이스. **Core 는 Game 을 참조하지 않는다.** 코어 · 게임 경계는 표준 §1.
 - 자주 어기는 금지(표준 절): 코드에 박힌 밸런스 수치 · 문구(§8) · 런 중 `Instantiate` · `Destroy` · 개체마다 `Update` · 매 프레임 할당(§5 · §7 · §9) · `UnityEngine.Object` 에 `?.` · `??`(§6) · 저장 DTO 에 프로퍼티(§12) · 핫패스 `Debug.Log`(§13) · 싱글톤 · `Find*`(§7) · 파일 헤더 이력(§2).
 - 외부 패키지는 MIT · Apache · CC0 등 재배포 가능한 것만, `Packages/manifest.json` 변경은 승인 지점이고 `ASSETS.md` 에 적는다. Asset Store 에셋은 커밋하지 않는다.

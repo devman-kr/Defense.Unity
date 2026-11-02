@@ -1,7 +1,7 @@
 ---
 id: 20261030-unity-assets-ledger
 title: ASSETS — 외부 파일 장부
-summary: Defense.Unity 외부 파일 장부 — .gitignore · Unity 템플릿 산출물 · 코딩 표준 사본 · .editorconfig · Tools/Blender(GPL) · P03 · P04 샘플 모델 · 셰이더 · 렌더러와 추가 패키지 com.unity.pipeline · newtonsoft-json 의 출처 · 라이선스 · AI 생성 여부.
+summary: Defense.Unity 외부 파일 장부 — .gitignore · Unity 템플릿 산출물 · 코딩 표준 사본 · .editorconfig · Tools/Blender(GPL) · P03 · P04 샘플 모델 · 셰이더와 추가 패키지 com.unity.pipeline · newtonsoft-json 의 출처 · 라이선스 · AI 생성 여부.
 doc_type: register
 status: final
 lifecycle: living
@@ -28,7 +28,6 @@ updated: 2026-11-02
 | `Tools/Blender/make_humanoids_smooth.py` | 이 저장소에서 작성(Planning P04 S2). `make_enemies_smooth.py` 의 도우미를 복사해 치비 인간형 둘(해골 궁수 · 좀비 — 뼈대 14 · 자동 가중치 · 동작 각 3)을 같은 팔레트 · 서브디비전으로 만든다 | GPL-3.0-or-later(`Tools/Blender/LICENSE`) | — | AI 생성(Claude Code · Opus 5.5) | 2026-11-02 |
 | `Assets/30_Assets/Models/P04_Smooth/SkeletonArcher.fbx` · `Zombie.fbx` | 이 저장소 `Tools/Blender/make_humanoids_smooth.py` 가 창 없는 Blender 5.2.3 으로 만든 매끈 판 인간형 샘플 모델(팔레트는 위 행의 `Palette.png` 를 같이 씀) | 이 저장소 `LICENSE`(MIT) — GPL 스크립트의 산출물은 GPL 영향 없음 | — | AI 생성(Claude Code · Opus 5.5) | 2026-11-02 |
 | `Assets/30_Assets/Shaders/`(`PaletteToon` · `ToonEdgeDetect` · `BlobShadow`) · `Assets/30_Assets/Materials/`(`PaletteToon` · `ToonEdgeDetect` · `BlobShadow`) · `Assets/30_Assets/Rendering/`(`ToonRamp.png` · `ToonVolume_Neutral.asset`) | 세션이 작성(Planning P04 S3 — 카툰 렌더링 시험). 셰이더는 기법(뒤집은 외피 · 깊이 · 노멀 Roberts cross · 단계 램프 · 프레넬 림)을 이해해 직접 썼고 외부 셰이더 코드를 옮기지 않음 — URP 17.3 의 `ShadowCasterPass` · `DepthOnlyPass` · `UnlitDepthNormalsPass` · `Blit.hlsl` · `DeclareDepthTexture` · `DeclareNormalsTexture` 를 include 로 씀. 램프 PNG · 머티리얼 · 볼륨 프로필은 에디터 스크립트 `Assets/10_Scripts/Editor/P04/` 와 `script eval` 이 만듦 | 이 저장소 `LICENSE`(MIT) | — | AI 생성(Claude Code · Opus 5.5) | 2026-11-02 |
-| `Assets/Settings/Toon_Renderer.asset` · `Toon_PC_Renderer.asset` | 템플릿의 `Mobile_Renderer` · `PC_Renderer` 를 에디터에서 복사하고 Full Screen Pass 기능(외곽선 B 시험)을 더함(Planning P04 S3 승인 지점 ② — 사용자 허락) | 원본과 같음([Unity Companion License](http://www.unity3d.com/legal/licenses/Unity_Companion_License)) — 더한 기능 설정은 이 저장소 `LICENSE`(MIT) | 복사본 + 기능 1. 원본 RP 에셋 둘의 렌더러 목록에 1줄씩(기본 인덱스 0 그대로) | AI 생성(Claude Code · Opus 5.5 — 기능 설정) | 2026-11-02 |
 
 ## 추가 패키지
 

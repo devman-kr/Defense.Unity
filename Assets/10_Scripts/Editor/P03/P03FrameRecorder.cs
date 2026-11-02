@@ -24,14 +24,28 @@ namespace Defense.Editor.P03
         /// </summary>
         public static string Record(string outDir, int frameCount, int fps, int width, int height)
         {
-            Scene scene = EditorSceneManager.OpenScene(P03SampleSceneBuilder.SCENE_PATH, OpenSceneMode.Single);
-            Transform root = GetRoot(scene);
+            return Record(P03SampleSceneBuilder.SCENE_PATH, P03SampleSceneBuilder.ROOT_NAME, P03SampleSceneBuilder.SLIME_MODEL_PATH, P03SampleSceneBuilder.BAT_MODEL_PATH,
+                outDir, frameCount, fps, width, height);
+        }
+
+        /// <summary>
+        /// 다른 씬 · 모델로 같은 녹화를 한다 — 루트 아래에 카메라 · 슬라임 · 박쥐 묶음이 P03 샘플 씬과 같은 이름으로 있어야 한다(P04 비교 씬).
+        /// </summary>
+        public static string Record(string scenePath, string rootName, string slimeModelPath, string batModelPath, string outDir, int frameCount, int fps, int width, int height)
+        {
+            Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+            Transform root = GetRoot(scene, rootName);
             Camera camera = root.Find(P03SampleSceneBuilder.CAMERA_NAME).GetComponent<Camera>();
             Transform slimes = root.Find(P03SampleSceneBuilder.SLIMES_NAME);
             Transform bats = root.Find(P03SampleSceneBuilder.BATS_NAME);
-            Dictionary<string, AnimationClip> slimeClips = LoadClips(P03SampleSceneBuilder.SLIME_MODEL_PATH);
-            Dictionary<string, AnimationClip> batClips = LoadClips(P03SampleSceneBuilder.BAT_MODEL_PATH);
+            Dictionary<string, AnimationClip> slimeClips = LoadClips(slimeModelPath);
+            Dictionary<string, AnimationClip> batClips = LoadClips(batModelPath);
             AnimationClip flap = batClips[FLAP_CLIP];
+            // 한 에디터 프레임 안에서 샘플링 · 렌더를 되풀이한다 — 끄면 스킨 행렬이 렌더마다 갱신되지 않아 자세가 늦는다(P03 발견)
+            foreach (SkinnedMeshRenderer skinned in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                skinned.forceMatrixRecalculationPerRender = true;
+            }
 
             Directory.CreateDirectory(outDir);
             for (int frame = 0; frame < frameCount; ++frame)
@@ -55,7 +69,7 @@ namespace Defense.Editor.P03
             string summary = outDir + " frames=" + frameCount + " fps=" + fps + " size=" + width + "x" + height
                 + " slimes=" + slimes.childCount + " bats=" + bats.childCount
                 + " idle/hop/flap length=" + slimeClips[IDLE_CLIP].length.ToString("0.###") + "/" + slimeClips[HOP_CLIP].length.ToString("0.###") + "/" + flap.length.ToString("0.###");
-            EditorSceneManager.OpenScene(P03SampleSceneBuilder.SCENE_PATH, OpenSceneMode.Single);
+            EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
             return summary;
         }
 
@@ -81,16 +95,17 @@ namespace Defense.Editor.P03
             Object.DestroyImmediate(image);
         }
 
-        private static Transform GetRoot(Scene scene)
+        /// <summary>씬의 최상위 오브젝트 가운데 이름이 rootName 인 것 — 꺼져 있어도 찾는다.</summary>
+        public static Transform GetRoot(Scene scene, string rootName)
         {
             foreach (GameObject candidate in scene.GetRootGameObjects())
             {
-                if (candidate.name == P03SampleSceneBuilder.ROOT_NAME)
+                if (candidate.name == rootName)
                 {
                     return candidate.transform;
                 }
             }
-            Debug.Assert(false, "씬에 루트가 없다: " + P03SampleSceneBuilder.ROOT_NAME);
+            Debug.Assert(false, "씬에 루트가 없다: " + rootName);
             return null;
         }
 

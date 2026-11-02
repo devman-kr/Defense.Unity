@@ -1,12 +1,12 @@
 ---
 id: 20261030-unity-assets-ledger
 title: ASSETS — 외부 파일 장부
-summary: Defense.Unity 외부 파일 장부 — .gitignore · Unity 템플릿 산출물 · 코딩 표준 사본 · .editorconfig · Tools/Blender(GPL) · P03 샘플 모델과 추가 패키지 com.unity.pipeline · newtonsoft-json 의 출처 · 라이선스 · AI 생성 여부.
+summary: Defense.Unity 외부 파일 장부 — .gitignore · Unity 템플릿 산출물 · 코딩 표준 사본 · .editorconfig · Tools/Blender(GPL) · P03 · P04 샘플 모델 · 셰이더와 추가 패키지 com.unity.pipeline · newtonsoft-json 의 출처 · 라이선스 · AI 생성 여부.
 doc_type: register
 status: final
 lifecycle: living
 created: 2026-10-30
-updated: 2026-11-01
+updated: 2026-11-02
 ---
 # ASSETS — 외부 파일 장부
 
@@ -23,6 +23,11 @@ updated: 2026-11-01
 | `Tools/Blender/make_enemies.py` | 이 저장소에서 작성(Planning P03 S0 — D-09 · `_공통` G-17). 창 없는 Blender 5.2.3 이 슬라임 · 박쥐 · 등불 탑을 팔레트 UV · 뼈대 · 동작과 함께 FBX 로 낸다 | GPL-3.0-or-later(`Tools/Blender/LICENSE` — Blender Python API 를 쓰는 스크립트는 공개하면 GPL. 만든 FBX · PNG 는 영향 없음) | — | AI 생성(Claude Code · Fable 5.1) | 2026-10-31 |
 | `Tools/Blender/LICENSE` | [GNU GPL v3 원문](https://www.gnu.org/licenses/gpl-3.0.txt)(FSF) — SHA-256 `3972dc97…b36986` | 원문 자체의 조건(누구나 그대로 복제 · 배포 가능, 변경 금지) | 없음 | 아님 | 2026-10-31 |
 | `Assets/30_Assets/Models/P03_CLI/`(FBX 6 · `palette.png` · `palette.mat` · `island.asset`) | 이 저장소 `Tools/Blender/make_enemies.py` 가 창 없는 Blender 5.2.3 으로 만든 샘플 모델(슬라임 · 박쥐 · 등불 탑, 변형 둘) · 팔레트. `palette.mat` · `island.asset` 은 에디터 스크립트 `Assets/10_Scripts/Editor/P03/` 가 만듦(Planning P03 S2 Opus 5.5 — `c70f6dc` · `3a1dd18`, 머지 `39266b4`) | 이 저장소 `LICENSE`(MIT) — GPL 스크립트의 산출물은 GPL 영향 없음(`Tools/Blender/README.md`) | — | AI 생성(Claude Code — 스크립트 Fable 5.1, 수정 · 실행 Opus 5.5) | 2026-11-01 |
+| `Tools/Blender/make_enemies_smooth.py` | 이 저장소에서 작성(Planning P04 S1). `make_enemies.py` 의 도우미를 복사해 같은 모델에 서브디비전 · 스무스 셰이딩 · 크리스를 얹는다 | GPL-3.0-or-later(`Tools/Blender/LICENSE`) | — | AI 생성(Claude Code · Opus 5.5) | 2026-11-02 |
+| `Assets/30_Assets/Models/P04_Smooth/`(FBX 3 · `Palette.png`) · `Assets/30_Assets/Materials/`(`PaletteLit` · `PaletteUnlit` · `PaletteCel`) · `Assets/30_Assets/Shaders/PaletteCel.shader` | FBX · 팔레트는 이 저장소 `Tools/Blender/make_enemies_smooth.py` 가 창 없는 Blender 5.2.3 으로 만든 매끈 판 샘플 모델. 머티리얼은 에디터 스크립트 `Assets/10_Scripts/Editor/P04/` 가 만듦. 셀 셰이더는 세션이 작성(URP 17.3 의 `ShadowCasterPass` · `DepthOnlyPass` · `UnlitDepthNormalsPass` 를 include 로 씀) | 이 저장소 `LICENSE`(MIT) — GPL 스크립트의 산출물은 GPL 영향 없음 | — | AI 생성(Claude Code · Opus 5.5) | 2026-11-02 |
+| `Tools/Blender/make_humanoids_smooth.py` | 이 저장소에서 작성(Planning P04 S2). `make_enemies_smooth.py` 의 도우미를 복사해 치비 인간형 둘(해골 궁수 · 좀비 — 뼈대 14 · 자동 가중치 · 동작 각 3)을 같은 팔레트 · 서브디비전으로 만든다 | GPL-3.0-or-later(`Tools/Blender/LICENSE`) | — | AI 생성(Claude Code · Opus 5.5) | 2026-11-02 |
+| `Assets/30_Assets/Models/P04_Smooth/SkeletonArcher.fbx` · `Zombie.fbx` | 이 저장소 `Tools/Blender/make_humanoids_smooth.py` 가 창 없는 Blender 5.2.3 으로 만든 매끈 판 인간형 샘플 모델(팔레트는 위 행의 `Palette.png` 를 같이 씀) | 이 저장소 `LICENSE`(MIT) — GPL 스크립트의 산출물은 GPL 영향 없음 | — | AI 생성(Claude Code · Opus 5.5) | 2026-11-02 |
+| `Assets/30_Assets/Shaders/`(`PaletteToon` · `ToonEdgeDetect` · `BlobShadow`) · `Assets/30_Assets/Materials/`(`PaletteToon` · `ToonEdgeDetect` · `BlobShadow`) · `Assets/30_Assets/Rendering/`(`ToonRamp.png` · `ToonVolume_Neutral.asset`) | 세션이 작성(Planning P04 S3 — 카툰 렌더링 시험). 셰이더는 기법(뒤집은 외피 · 깊이 · 노멀 Roberts cross · 단계 램프 · 프레넬 림)을 이해해 직접 썼고 외부 셰이더 코드를 옮기지 않음 — URP 17.3 의 `ShadowCasterPass` · `DepthOnlyPass` · `UnlitDepthNormalsPass` · `Blit.hlsl` · `DeclareDepthTexture` · `DeclareNormalsTexture` 를 include 로 씀. 램프 PNG · 머티리얼 · 볼륨 프로필은 에디터 스크립트 `Assets/10_Scripts/Editor/P04/` 와 `script eval` 이 만듦 | 이 저장소 `LICENSE`(MIT) | — | AI 생성(Claude Code · Opus 5.5) | 2026-11-02 |
 
 ## 추가 패키지
 

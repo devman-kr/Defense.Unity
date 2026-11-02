@@ -1,7 +1,7 @@
 ---
 id: 20261031-unity-tools-blender-readme
 title: Tools/Blender — 창 없는 Blender 로 로우폴리 모델을 만드는 스크립트
-summary: Defense.Unity 의 bpy 스크립트 폴더(GPL-3.0-or-later) — make_enemies.py 가 슬라임 · 박쥐 · 등불 탑을 팔레트 UV · 뼈대 · 동작과 함께 FBX 로 내보내고 미리보기를 렌더한다. 실행 명령과 라이선스 경계를 적는다.
+summary: Defense.Unity 의 bpy 스크립트 폴더(GPL-3.0-or-later) — make_enemies.py 가 슬라임 · 박쥐 · 등불 탑을 팔레트 UV · 뼈대 · 동작과 함께 FBX 로 내보내고 미리보기를 렌더한다(매끈 판 · 인간형 스크립트 포함). 실행 명령과 라이선스 경계를 적는다.
 doc_type: guide
 status: final
 lifecycle: living
@@ -32,3 +32,4 @@ Blender -b --factory-startup -noaudio --python-exit-code 1 --python Tools/Blende
 |---|---|---|
 | `make_enemies.py` | 슬라임(뼈 2 · Idle · Hop · Hit · Die) · 박쥐(뼈 3 · Flap · Hit) · 등불 탑(정적) · 팔레트 4×4 | Planning P03 S2(Opus 5.5, `a5a2a5c`)가 다듬은 판 — 박쥐 날개 UV 층을 `UVMap` 으로 맞춰 팔레트 셀 6 이 나오고, 「날갯짓 회전축」은 결함이 아니라 사선 카메라의 원근 착시라 박쥐 렌더만 정면 카메라로 바꿨다(`P03_RESULT.deform` 의 `tip_z_l` = `tip_z_r`). `Material.use_nodes` · `World.use_nodes` 는 Blender 6.0 에서 제거 예정(경고) |
 | `make_enemies_smooth.py` | 위 셋의 매끈 판 — 같은 뼈대 · 동작 · 팔레트 셀에 서브디비전 2단계 + 스무스 셰이딩(박쥐 귀 · 탑 지붕 꼭짓점과 날개 외곽 · 탑 테두리에 크리스) · FBX 는 `bake_space_transform` 켬 하나(`Slime.fbx` · `Bat.fbx` · `Tower.fbx` · `Palette.png`) · 로우폴리와 나란한 라인업 렌더 | Planning P04 S1. 결과 JSON 은 `P04_RESULT`(단계별 삼각형 · 정점 · UV 셀 중심 이탈 · FBX 다시 읽기 · Hop 13 높이). 모디파이어는 FBX 내보내기가 적용한다(`use_mesh_modifiers` — 뼈대는 REST 자세로 두고 Subsurf 를 적용해 가중치가 남는다). 창 없이 6초 안팎, 메모리 0.55 GB |
+| `make_humanoids_smooth.py` | 치비 인간형 둘의 매끈 판 — 해골 궁수(Idle · Walk · Shoot, 활은 별도 메시로 왼손 뼈 100 %) · 좀비(Idle · Walk 절뚝 · Attack). 두 모델이 같은 뼈대 14(Root · Hips · Spine · Head · 팔 3 × 2 · 다리 2 × 2, Generic) · 거친 메시에 자동 가중치(`ARMATURE_AUTO` — 가중치가 남지 않은 떨어진 조각은 섬 단위로 가장 가까운 뼈에 1.0) · 서브디비전 2단계 · `make_enemies_smooth.py` 와 같은 팔레트 셀. 자세는 뼈 방향과 두 뼈 IK(발 · 손목 목표)로 적어 키를 넣는다. FBX 는 `SkeletonArcher.fbx` · `Zombie.fbx`(+ 비교용으로 그대로 내보낸 `naive/`), 라인업 렌더는 저장소의 S1 매끈 판 FBX 를 가져와 함께 찍는다 | Planning P04 S2. 결과 JSON 은 `P04_RESULT`(뼈 수 · 단계별 삼각형 · 관절 접힘 각과 두께 · Walk 첫 · 끝 차이 · 활 추종 · FBX 다시 읽기). 「모든 동작」 내보내기는 뼈 이름이 같은 다른 모델의 동작까지 넣는다 — 동작마다 모델 이름 사용자 속성에 키를 하나 넣어 막는다. 창 없이 6초 안팎, 메모리 0.6 GB |

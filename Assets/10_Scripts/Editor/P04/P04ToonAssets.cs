@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
@@ -18,6 +19,17 @@ namespace Defense.Editor.P04
         private const string TOON_SHADER_NAME = "Defense/PaletteToon";
         private const string EDGE_SHADER_NAME = "Defense/ToonEdgeDetect";
         private const string PALETTE_TEXTURE_PATH = "Assets/30_Assets/Models/P04_Smooth/Palette.png";
+        public const string BLOB_MATERIAL_PATH = "Assets/30_Assets/Materials/BlobShadow.mat";
+        private const string BLOB_SHADER_NAME = "Defense/BlobShadow";
+        // 폴더 체계(CLAUDE.md)에 없는 새 폴더 — 렌더링 전용 데이터(램프 · 볼륨 프로필). 보고 「발견」에 적는다
+        public const string RENDERING_FOLDER = "Assets/30_Assets/Rendering";
+        public const string RAMP_TEXTURE_PATH = RENDERING_FOLDER + "/ToonRamp.png";
+        private const int RAMP_WIDTH = 256;
+        // 셰이더 기본값과 같은 곡선 — PaletteToon.shader 의 _LowStep · _HighStep · _MidLevel · _StepSoftness
+        private const float RAMP_LOW_STEP = 0.05f;
+        private const float RAMP_HIGH_STEP = 0.5f;
+        private const float RAMP_MID_LEVEL = 0.6f;
+        private const float RAMP_SOFTNESS = 0.02f;
 
         /// <summary>두 머티리얼을 (없으면) 만들고 셰이더 기본값으로 둔다 — 외곽선 패스 켬, 받는 그림자 양자화 켬.</summary>
         public static string CreateMaterials()
@@ -34,6 +46,93 @@ namespace Defense.Editor.P04
             report.Append(TOON_MATERIAL_PATH).Append(" keywords=").Append(string.Join(",", toon.shaderKeywords))
                 .Append(" outline=").Append(toon.GetShaderPassEnabled(OUTLINE_LIGHT_MODE)).Append('\n');
             return report.ToString();
+        }
+
+        /// <summary>
+        /// 램프 텍스처(256×1, 회색) — 단계 함수 기본값(문턱 0.05 · 0.5, 중간 단 0.6, 경계 폭 0.02)과 같은 곡선을 그려 둔다.
+        /// 같은 모양에서 텍스처 샘플과 단계 함수의 비용만 비교하려는 것(미지수 ⑬). 블롭 머티리얼도 만든다.
+        /// </summary>
+        public static string CreateRampAndBlob()
+        {
+            Directory.CreateDirectory(RENDERING_FOLDER);
+            Texture2D ramp = new Texture2D(RAMP_WIDTH, 1, TextureFormat.RGB24, false);
+            for (int x = 0; x < RAMP_WIDTH; ++x)
+            {
+                float amount = (x + 0.5f) / RAMP_WIDTH;
+                float low = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(RAMP_LOW_STEP - RAMP_SOFTNESS, RAMP_LOW_STEP + RAMP_SOFTNESS, amount));
+                float high = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(RAMP_HIGH_STEP - RAMP_SOFTNESS, RAMP_HIGH_STEP + RAMP_SOFTNESS, amount));
+                float value = low * RAMP_MID_LEVEL + high * (1f - RAMP_MID_LEVEL);
+                ramp.SetPixel(x, 0, new Color(value, value, value));
+            }
+            File.WriteAllBytes(RAMP_TEXTURE_PATH, ramp.EncodeToPNG());
+            Object.DestroyImmediate(ramp);
+            AssetDatabase.ImportAsset(RAMP_TEXTURE_PATH);
+            TextureImporter importer = (TextureImporter)AssetImporter.GetAtPath(RAMP_TEXTURE_PATH);
+            // 값 텍스처 — 감마 변환 · 밉맵 · 압축 · 반복 없이
+            importer.sRGBTexture = false;
+            importer.mipmapEnabled = false;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.filterMode = FilterMode.Bilinear;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.SaveAndReimport();
+
+            // 다시 가져오기를 동기로 끝낸 뒤 읽는다 — 이 세션 첫 실행에서 null 이 걸려 머티리얼의 램프가 비었다(셰이더 기본 흰색)
+            AssetDatabase.ImportAsset(RAMP_TEXTURE_PATH, ImportAssetOptions.ForceSynchronousImport);
+            Texture2D rampAsset = AssetDatabase.LoadAssetAtPath<Texture2D>(RAMP_TEXTURE_PATH);
+            Debug.Assert(rampAsset != null, "램프 텍스처를 못 읽었다: " + RAMP_TEXTURE_PATH);
+            Material toon = LoadToon();
+            toon.SetTexture("_RampMap", rampAsset);
+            EditorUtility.SetDirty(toon);
+            StringBuilder report = new StringBuilder();
+            CreateOrLoad(BLOB_MATERIAL_PATH, BLOB_SHADER_NAME, report);
+            AssetDatabase.SaveAssetIfDirty(toon);
+            return report.Append(RAMP_TEXTURE_PATH).Append(" written\n").ToString();
+        }
+
+        /// <summary>
+        /// 승인 지점 ③(2026-11-02) 사용자 선택을 `PaletteToon.mat` 에 넣는다 — 3단 · 경계 0.02 · 청보라 그림자 · 어두운 단 채도 0.3 ·
+        /// 받는 그림자 양자화 · 캐릭터 자기 그림자 끔 · 림 · 스페큘러 · 램프 텍스처 켬, 조명 방향 고정 끔, 외곽선 A 2‰.
+        /// 블롭 그림자는 머티리얼이 아니라 씬(캐릭터 그림자 드리우기 끔 + 발밑 쿼드)이 정한다.
+        /// </summary>
+        public static string ApplyApprovedDefaults()
+        {
+            Material toon = LoadToon();
+            toon.SetFloat("_MidLevel", 0.6f);
+            toon.SetFloat("_StepSoftness", 0.02f);
+            toon.SetColor("_ShadowTint", new Color(0.58f, 0.62f, 0.78f));
+            toon.SetFloat("_ShadowSaturation", 0.3f);
+            toon.SetFloat("_OutlineWidth", 2f);
+            SetKeyword(toon, SHADOW_BANDS_KEYWORD, "_ShadowBands", true);
+            SetKeyword(toon, "_SELF_SHADOW_OFF", "_SelfShadowOff", true);
+            SetKeyword(toon, "_RIM", "_Rim", true);
+            SetKeyword(toon, "_SPECULAR", "_Specular", true);
+            SetKeyword(toon, "_RAMP_TEXTURE", "_UseRamp", true);
+            SetKeyword(toon, "_FIXED_LIGHT_DIR", "_FixedLight", false);
+            SetOutline(toon, true);
+            EditorUtility.SetDirty(toon);
+            AssetDatabase.SaveAssetIfDirty(toon);
+            return TOON_MATERIAL_PATH + " keywords=" + string.Join(",", toon.shaderKeywords) + " ramp=" + toon.GetTexture("_RampMap");
+        }
+
+        public static Material LoadBlob()
+        {
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(BLOB_MATERIAL_PATH);
+            Debug.Assert(material != null, "머티리얼이 없다 — CreateRampAndBlob 을 먼저: " + BLOB_MATERIAL_PATH);
+            return material;
+        }
+
+        /// <summary>셰이더 키워드 토글 — [Toggle] 속성 값도 같이 맞춰 인스펙터와 어긋나지 않게.</summary>
+        public static void SetKeyword(Material material, string keyword, string toggleProperty, bool isOn)
+        {
+            material.SetFloat(toggleProperty, isOn ? 1f : 0f);
+            if (isOn)
+            {
+                material.EnableKeyword(keyword);
+            }
+            else
+            {
+                material.DisableKeyword(keyword);
+            }
         }
 
         public static Material LoadToon()

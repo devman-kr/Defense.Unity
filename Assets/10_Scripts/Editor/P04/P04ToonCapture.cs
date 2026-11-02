@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -29,25 +30,41 @@ namespace Defense.Editor.P04
         private const string CAMERA_DATA_TYPE_NAME = "UniversalAdditionalCameraData";
         private const string CAMERA_DATA_ASSEMBLY_QUALIFIED_NAME = "UnityEngine.Rendering.Universal.UniversalAdditionalCameraData, Unity.RenderPipelines.Universal.Runtime";
 
+        private const string VOLUME_ASSEMBLY_QUALIFIED_NAME = "UnityEngine.Rendering.Volume, Unity.RenderPipelines.Core.Runtime";
+        // PaletteToon.shader 의 CHARACTER_LAYER 와 같은 비트(렌더링 레이어 1)
+        private const uint CHARACTER_LAYER_MASK = 2u;
+        private const float BLOB_LIFT_METERS = 0.01f;
+        private const float BLOB_SIZE_RATIO = 1.1f;
+
         private static readonly int[] BOTH_QUALITIES = { MOBILE_QUALITY, PC_QUALITY };
 
-        /// <summary>
-        /// label 이름으로 두 품질 × 4장을 outDir 에 쓴다 — `{label}_{Mobile|PC}_{Portrait|Lineup5|CloseArcher|CloseSlime}.png`.
-        /// configure 가 있으면 씬을 연 뒤 material 의 사본을 만들어 그것에 적용하고 그 사본으로 찍는다(에셋은 그대로).
-        /// rendererIndex 가 0 이상이면 그 장면의 카메라를 그 렌더러로 찍는다(시험 렌더러 — 품질의 RP 에셋 목록에 있어야 한다).
-        /// </summary>
-        public static string CaptureSet(string outDir, string label, Material material, System.Action<Material> configure = null, int rendererIndex = -1, bool isPostProcessing = false)
+        /// <summary>캡처 한 벌의 조건 — 비우면 에셋 머티리얼 그대로 · 두 품질 · 기본 렌더러 · 후처리 끔.</summary>
+        public sealed class Options
         {
-            return CaptureSet(outDir, label, material, configure, BOTH_QUALITIES, rendererIndex, isPostProcessing);
+            /// <summary>있으면 씬을 연 뒤 머티리얼 사본을 만들어 적용한다(에셋은 그대로).</summary>
+            public System.Action<Material> Configure;
+            /// <summary>있으면 씬을 연 뒤 · 찍기 전에 씬 인스턴스를 바꾼다(블롭 · 렌더링 레이어 · 볼륨). 저장하지 않는다.</summary>
+            public System.Action<Scene> PrepareScene;
+            public int[] Qualities = BOTH_QUALITIES;
+            /// <summary>0 이상이면 그 렌더러로 찍는다(시험 렌더러 — 품질의 RP 에셋 목록에 있어야 한다).</summary>
+            public int RendererIndex = -1;
+            public bool IsPostProcessing;
         }
 
-        public static string CaptureSet(string outDir, string label, Material material, System.Action<Material> configure, int[] qualities, int rendererIndex, bool isPostProcessing)
+        /// <summary>
+        /// label 이름으로 품질마다 4장을 outDir 에 쓴다 — `{label}_{Mobile|PC}_{Portrait|Lineup5|CloseArcher|CloseSlime}.png`.
+        /// </summary>
+        public static string CaptureSet(string outDir, string label, Material material, Options options = null)
         {
             Debug.Assert(material != null, "머티리얼이 없다: " + label);
+            if (options == null)
+            {
+                options = new Options();
+            }
             int originalQuality = QualitySettings.GetQualityLevel();
             Directory.CreateDirectory(outDir);
             StringBuilder report = new StringBuilder();
-            foreach (int quality in qualities)
+            foreach (int quality in options.Qualities)
             {
                 QualitySettings.SetQualityLevel(quality, true);
                 string prefix = Path.Combine(outDir, label + "_" + GetQualityName(quality) + "_");
@@ -57,15 +74,22 @@ namespace Defense.Editor.P04
                 Transform lineup5 = P03FrameRecorder.GetRoot(scene, P04HumanoidSceneBuilder.LINEUP5_ROOT_NAME);
                 // 사본은 씬을 연 뒤에 만든다 — 연기 전에 만든 사본은 Single 열기가 셰이더를 언로드해 오류 셰이더(자홍색)로 그려진다(이 세션 실측)
                 Material used = material;
-                if (configure != null)
+                if (options.Configure != null)
                 {
                     used = new Material(material);
                     used.name = label;
-                    configure(used);
+                    options.Configure(used);
                 }
                 foreach (Transform root in new[] { smooth, humanoids, lineup5 })
                 {
                     P04SampleSceneBuilder.ApplyMaterial(root.gameObject, used);
+                }
+                // 캐릭터 표시는 늘 — PaletteToon 의 캐릭터 전용 키워드가 꺼져 있으면 그림이 바뀌지 않는다
+                MarkCharacters(scene);
+                // 씬 준비는 머티리얼을 칠한 뒤 — 먼저 하면 블롭 쿼드까지 팔레트 머티리얼로 덮인다(이 세션 실측)
+                if (options.PrepareScene != null)
+                {
+                    options.PrepareScene(scene);
                 }
                 P04HumanoidCapture.ForceSkinningPerRender(smooth, humanoids, lineup5);
                 P04HumanoidCapture.Clips clips = new P04HumanoidCapture.Clips();
@@ -75,14 +99,14 @@ namespace Defense.Editor.P04
                 P04HumanoidCapture.PoseHumanoids(humanoids, clips,
                     clips.Archer[P04HumanoidCapture.SHOOT_CLIP], P04HumanoidCapture.ToTime(P04HumanoidCapture.SHOOT_DRAW_FRAME),
                     clips.Zombie[P04HumanoidCapture.WALK_CLIP], P04HumanoidCapture.CAPTURE_TIME_SECONDS);
-                Render(smooth.Find(P03SampleSceneBuilder.CAMERA_NAME), prefix + "Portrait.png", PORTRAIT_WIDTH, PORTRAIT_HEIGHT, rendererIndex, isPostProcessing, report);
-                Render(humanoids.Find(P04HumanoidSceneBuilder.ARCHER_FACE_CAMERA_NAME), prefix + "CloseArcher.png", CLOSE_SIZE, CLOSE_SIZE, rendererIndex, isPostProcessing, report);
-                Render(smooth.Find(P04SampleSceneBuilder.FACE_CAMERA_NAME), prefix + "CloseSlime.png", CLOSE_SIZE, CLOSE_SIZE, rendererIndex, isPostProcessing, report);
+                Render(smooth.Find(P03SampleSceneBuilder.CAMERA_NAME), prefix + "Portrait.png", PORTRAIT_WIDTH, PORTRAIT_HEIGHT, options.RendererIndex, options.IsPostProcessing, report);
+                Render(humanoids.Find(P04HumanoidSceneBuilder.ARCHER_FACE_CAMERA_NAME), prefix + "CloseArcher.png", CLOSE_SIZE, CLOSE_SIZE, options.RendererIndex, options.IsPostProcessing, report);
+                Render(smooth.Find(P04SampleSceneBuilder.FACE_CAMERA_NAME), prefix + "CloseSlime.png", CLOSE_SIZE, CLOSE_SIZE, options.RendererIndex, options.IsPostProcessing, report);
 
                 P04HumanoidCapture.ShowOnly(scene, lineup5);
                 clips.Archer[P04HumanoidCapture.IDLE_CLIP].SampleAnimation(lineup5.Find(P04HumanoidSceneBuilder.LINEUP5_ARCHER_NAME).gameObject, 0f);
                 clips.Zombie[P04HumanoidCapture.IDLE_CLIP].SampleAnimation(lineup5.Find(P04HumanoidSceneBuilder.LINEUP5_ZOMBIE_NAME).gameObject, 0f);
-                Render(lineup5.Find(P04HumanoidSceneBuilder.LINEUP5_CAMERA_NAME), prefix + "Lineup5.png", LINEUP_WIDTH, LINEUP_HEIGHT, rendererIndex, isPostProcessing, report);
+                Render(lineup5.Find(P04HumanoidSceneBuilder.LINEUP5_CAMERA_NAME), prefix + "Lineup5.png", LINEUP_WIDTH, LINEUP_HEIGHT, options.RendererIndex, options.IsPostProcessing, report);
                 if (used != material)
                 {
                     Object.DestroyImmediate(used);
@@ -146,6 +170,78 @@ namespace Defense.Editor.P04
                 .Append('/').Append(UnityStats.setPassCalls).Append('/').Append(UnityStats.triangles).Append('/').Append(UnityStats.vertices);
             EditorSceneManager.OpenScene(P04SampleSceneBuilder.SCENE_PATH, OpenSceneMode.Single);
             return report.ToString();
+        }
+
+        /// <summary>씬의 스킨 메시(캐릭터)에 렌더링 레이어 1 을 켠다 — PaletteToon 의 캐릭터 전용 기법(자기 그림자 끔 · 조명 고정 · 림 · 스페큘러)의 대상. 켠 수를 돌려준다.</summary>
+        public static int MarkCharacters(Scene scene)
+        {
+            int count = 0;
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                foreach (SkinnedMeshRenderer skinned in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                {
+                    skinned.renderingLayerMask |= CHARACTER_LAYER_MASK;
+                    ++count;
+                }
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// 캐릭터(스킨 메시를 가진 모델 인스턴스)마다 그림자 드리우기를 끄고 발밑에 블롭 쿼드를 놓는다 — 높이는 그 루트의 바닥(y 0).
+        /// 등불 탑 같은 정적 모델은 실시간 그림자를 그대로 둔다. 놓은 수를 돌려준다.
+        /// </summary>
+        public static int UseBlobShadows(Scene scene)
+        {
+            Material blob = P04ToonAssets.LoadBlob();
+            int count = 0;
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                HashSet<GameObject> characters = new HashSet<GameObject>();
+                foreach (SkinnedMeshRenderer skinned in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                {
+                    characters.Add(PrefabUtility.GetOutermostPrefabInstanceRoot(skinned.gameObject));
+                }
+                foreach (GameObject character in characters)
+                {
+                    Renderer[] renderers = character.GetComponentsInChildren<Renderer>(true);
+                    Bounds bounds = renderers[0].bounds;
+                    foreach (Renderer renderer in renderers)
+                    {
+                        renderer.shadowCastingMode = ShadowCastingMode.Off;
+                        bounds.Encapsulate(renderer.bounds);
+                    }
+                    GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                    quad.name = "BlobShadow";
+                    Object.DestroyImmediate(quad.GetComponent<Collider>());
+                    quad.transform.SetParent(root.transform, true);
+                    // 쿼드 앞면(-Z)이 위를 보게 눕힌다 · 바닥에 살짝 띄워 깊이 다툼을 피한다
+                    quad.transform.SetPositionAndRotation(new Vector3(bounds.center.x, root.transform.position.y + BLOB_LIFT_METERS, bounds.center.z), Quaternion.Euler(90f, 0f, 0f));
+                    float size = Mathf.Max(bounds.size.x, bounds.size.z) * BLOB_SIZE_RATIO;
+                    quad.transform.localScale = new Vector3(size, size, 1f);
+                    MeshRenderer quadRenderer = quad.GetComponent<MeshRenderer>();
+                    quadRenderer.sharedMaterial = blob;
+                    quadRenderer.shadowCastingMode = ShadowCastingMode.Off;
+                    quadRenderer.receiveShadows = false;
+                    ++count;
+                }
+            }
+            return count;
+        }
+
+        /// <summary>씬에 전역 볼륨 하나를 두고 profilePath 의 프로필을 건다(후처리를 켠 카메라만 영향). URP 타입은 이름으로 찾는다.</summary>
+        public static void AddGlobalVolume(Scene scene, string profilePath)
+        {
+            Object profile = AssetDatabase.LoadAssetAtPath<ScriptableObject>(profilePath);
+            Debug.Assert(profile != null, "볼륨 프로필이 없다: " + profilePath);
+            System.Type type = System.Type.GetType(VOLUME_ASSEMBLY_QUALIFIED_NAME);
+            Debug.Assert(type != null, "Volume 타입이 없다");
+            GameObject volumeObject = new GameObject("ToonVolume");
+            SceneManager.MoveGameObjectToScene(volumeObject, scene);
+            SerializedObject serialized = new SerializedObject(volumeObject.AddComponent(type));
+            serialized.FindProperty("sharedProfile").objectReferenceValue = profile;
+            serialized.FindProperty("m_IsGlobal").boolValue = true;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         public static string GetQualityName(int quality)

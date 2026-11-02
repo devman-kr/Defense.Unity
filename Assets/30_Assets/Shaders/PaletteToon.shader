@@ -3,6 +3,10 @@
 // 더한 것:
 //   _SHADOW_BANDS — 받는 그림자 감쇠를 N·L 과 따로 한 단으로 끊는다(부드러운 그림자 가장자리가 중간 단 고리를 만들지 않게).
 //   _ShadowSaturation — 어두운 단 색의 채도를 올린다(0 이면 PaletteCel 과 같다).
+//   캐릭터 전용(렌더링 레이어 1 이 켜진 렌더러만 — 섬 · 탑은 그대로):
+//     _SELF_SHADOW_OFF — 그림자를 받지 않는다(바닥만 받음). _FIXED_LIGHT_DIR — 명암을 고정 방향으로(그림자는 실제 해).
+//     _RIM · _SPECULAR — 단계 프레넬 림 · 단계 하이라이트(빛 받는 쪽만).
+//   _RAMP_TEXTURE — 단계 함수 대신 램프 텍스처(전부).
 //   Outline 패스 — 뒤집은 외피(Cull Front, 법선 방향 확장, 화면 높이 기준 두께). LightMode SRPDefaultUnlit 이라
 //     Material.SetShaderPassEnabled("SRPDefaultUnlit", false) 로 끈다(키워드 · 변형 없음).
 // 받지 않는 것: 추가 조명(등불 점광) · 라이트맵 · 라이트 레이어(PaletteCel 과 같다).
@@ -23,6 +27,21 @@ Shader "Defense/PaletteToon"
         [Toggle(_SHADOW_BANDS)] _ShadowBands("Quantize Received Shadow", Float) = 1
         _ShadowStep("Received Shadow Step", Range(0.01, 0.99)) = 0.5
         _ShadowSaturation("Dark Band Saturation Boost", Range(0, 1)) = 0.3
+        [Toggle(_SELF_SHADOW_OFF)] _SelfShadowOff("Characters Do Not Receive Shadow", Float) = 0
+
+        [Header(Lighting)]
+        [Toggle(_FIXED_LIGHT_DIR)] _FixedLight("Fixed Light Direction", Float) = 0
+        _FixedLightDirection("Fixed Light Direction (world, toward light)", Vector) = (-0.45, 0.75, -0.5, 0)
+        [Toggle(_RAMP_TEXTURE)] _UseRamp("Ramp Texture", Float) = 0
+        [NoScaleOffset] _RampMap("Ramp (x = N·L)", 2D) = "white" {}
+
+        [Header(Rim and Specular)]
+        [Toggle(_RIM)] _Rim("Rim Light", Float) = 0
+        _RimThreshold("Rim Threshold (1 - N·V)", Range(0, 1)) = 0.6
+        _RimColor("Rim Color (added)", Color) = (0.35, 0.35, 0.35, 1)
+        [Toggle(_SPECULAR)] _Specular("Toon Specular", Float) = 0
+        _SpecularThreshold("Specular Threshold (N·H)", Range(0.8, 1)) = 0.97
+        _SpecularColor("Specular Color (added)", Color) = (0.45, 0.45, 0.45, 1)
 
         [Header(Outline)]
         _OutlineWidth("Outline Width (per mille of screen height)", Range(0, 8)) = 2
@@ -50,6 +69,11 @@ Shader "Defense/PaletteToon"
             half _ShadowSaturation;
             half _OutlineWidth;
             half4 _OutlineColor;
+            half4 _FixedLightDirection;
+            half _RimThreshold;
+            half4 _RimColor;
+            half _SpecularThreshold;
+            half4 _SpecularColor;
         CBUFFER_END
 
         TEXTURE2D(_BaseMap);
@@ -66,6 +90,11 @@ Shader "Defense/PaletteToon"
             #pragma vertex ToonVertex
             #pragma fragment ToonFragment
             #pragma shader_feature_local_fragment _SHADOW_BANDS
+            #pragma shader_feature_local_fragment _SELF_SHADOW_OFF
+            #pragma shader_feature_local_fragment _FIXED_LIGHT_DIR
+            #pragma shader_feature_local_fragment _RAMP_TEXTURE
+            #pragma shader_feature_local_fragment _RIM
+            #pragma shader_feature_local_fragment _SPECULAR
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
@@ -73,6 +102,12 @@ Shader "Defense/PaletteToon"
             #pragma multi_compile_instancing
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+
+            // 렌더링 레이어 1(비트 1) = 캐릭터 — 스킨 메시 렌더러에 켠다(P04ToonCapture 가 시험 때 씬 인스턴스에만)
+            #define CHARACTER_LAYER 2u
+
+            TEXTURE2D(_RampMap);
+            SAMPLER(sampler_RampMap);
 
             struct Attributes
             {
@@ -124,23 +159,56 @@ Shader "Defense/PaletteToon"
 
                 // 위치 · 그림자 마스크를 넘기는 판이 그림자 거리 끝의 페이드를 한다(URP Lit 과 같은 호출)
                 Light mainLight = GetMainLight(TransformWorldToShadowCoord(input.positionWS), input.positionWS, half4(1.0h, 1.0h, 1.0h, 1.0h));
-                half nDotL = saturate(dot(normalWS, mainLight.direction));
+                // 캐릭터 = 렌더링 레이어 1 이 켜진 렌더러. 아래 캐릭터 전용 기법은 섬 · 탑에 걸리지 않는다(머티리얼은 하나 그대로)
+                bool isCharacter = (GetMeshRenderingLayer() & CHARACTER_LAYER) != 0u;
+                half shadowAttenuation = mainLight.shadowAttenuation;
+                #if defined(_SELF_SHADOW_OFF)
+                    // 캐릭터는 그림자를 받지 않는다 — 바닥만 받는다
+                    shadowAttenuation = isCharacter ? 1.0h : shadowAttenuation;
+                #endif
+                half3 lightDirection = mainLight.direction;
+                #if defined(_FIXED_LIGHT_DIR)
+                    // 캐릭터 명암만 고정 방향(하루 조명과 무관), 그림자는 실제 해
+                    lightDirection = isCharacter ? normalize(_FixedLightDirection.xyz) : lightDirection;
+                #endif
+                half nDotL = saturate(dot(normalWS, lightDirection));
                 #if defined(_SHADOW_BANDS)
                     // 그림자는 따로 한 단 — 그림자 안은 어두운 단, 밖은 N·L 단 그대로
                     half lightAmount = nDotL;
-                    half shadowBand = smoothstep(_ShadowStep - _StepSoftness, _ShadowStep + _StepSoftness, mainLight.shadowAttenuation);
+                    half shadowBand = smoothstep(_ShadowStep - _StepSoftness, _ShadowStep + _StepSoftness, shadowAttenuation);
                 #else
-                    half lightAmount = nDotL * mainLight.shadowAttenuation;
+                    half lightAmount = nDotL * shadowAttenuation;
                     half shadowBand = 1.0h;
                 #endif
-                half low = smoothstep(_LowStep - _StepSoftness, _LowStep + _StepSoftness, lightAmount);
-                half high = smoothstep(_HighStep - _StepSoftness, _HighStep + _StepSoftness, lightAmount);
-                // 어두운 단 0 · 중간 단 _MidLevel · 밝은 단 1 — _MidLevel 이 1 이면 두 단
-                half ramp = (low * _MidLevel + high * (1.0h - _MidLevel)) * shadowBand;
+                #if defined(_RAMP_TEXTURE)
+                    // 램프 텍스처(가로 N·L, 세로 무관) — 단계 함수 대신 그린 곡선
+                    half ramp = SAMPLE_TEXTURE2D(_RampMap, sampler_RampMap, float2(lightAmount, 0.5)).r * shadowBand;
+                #else
+                    half low = smoothstep(_LowStep - _StepSoftness, _LowStep + _StepSoftness, lightAmount);
+                    half high = smoothstep(_HighStep - _StepSoftness, _HighStep + _StepSoftness, lightAmount);
+                    // 어두운 단 0 · 중간 단 _MidLevel · 밝은 단 1 — _MidLevel 이 1 이면 두 단
+                    half ramp = (low * _MidLevel + high * (1.0h - _MidLevel)) * shadowBand;
+                #endif
 
                 // _ShadowSaturation 0 이면 albedo * lerp(_ShadowTint, 1, ramp) — PaletteCel 과 같은 값
                 half3 dark = BoostSaturation(albedo * _ShadowTint.rgb, _ShadowSaturation);
                 half3 direct = lerp(dark, albedo, ramp) * mainLight.color;
+                #if defined(_RIM) || defined(_SPECULAR)
+                    half3 viewDirection = GetWorldSpaceNormalizeViewDir(input.positionWS);
+                    // 빛 받는 쪽 · 캐릭터만
+                    half litSide = smoothstep(0.0h, _StepSoftness * 2.0h, nDotL) * shadowBand * (isCharacter ? 1.0h : 0.0h);
+                #endif
+                #if defined(_RIM)
+                    // 단계 프레넬 — 실루엣 가장자리, 빛 받는 쪽만
+                    half rim = smoothstep(_RimThreshold - _StepSoftness, _RimThreshold + _StepSoftness, 1.0h - saturate(dot(normalWS, viewDirection)));
+                    direct += _RimColor.rgb * rim * litSide * mainLight.color;
+                #endif
+                #if defined(_SPECULAR)
+                    // 단계 하이라이트 — 블린-퐁 N·H 를 한 단으로
+                    half nDotH = saturate(dot(normalWS, normalize(lightDirection + viewDirection)));
+                    half specular = smoothstep(_SpecularThreshold - _StepSoftness * 0.25h, _SpecularThreshold + _StepSoftness * 0.25h, nDotH);
+                    direct += _SpecularColor.rgb * specular * litSide * mainLight.color;
+                #endif
                 half3 ambient = albedo * SampleSH(normalWS) * _AmbientStrength;
                 #if defined(_SCREEN_SPACE_OCCLUSION)
                     AmbientOcclusionFactor occlusion = GetScreenSpaceAmbientOcclusion(GetNormalizedScreenSpaceUV(input.positionCS));

@@ -26,12 +26,20 @@ namespace Defense.Editor.P04
             List<Texture2D> images = new List<Texture2D>();
             foreach (string path in paths)
             {
+                // 빈 경로는 빈 칸(라벨만) — 값이 둘뿐인 손잡이의 셋째 칸
+                if (string.IsNullOrEmpty(path))
+                {
+                    images.Add(null);
+                    continue;
+                }
                 Texture2D image = new Texture2D(2, 2, TextureFormat.RGB24, false);
                 bool isLoaded = image.LoadImage(File.ReadAllBytes(path));
                 Debug.Assert(isLoaded, "PNG 를 못 읽었다: " + path);
                 images.Add(image);
             }
-            int cellHeight = Mathf.RoundToInt(cellWidth * (float)images[0].height / images[0].width);
+            Texture2D first = images.Find(image => image != null);
+            Debug.Assert(first != null, "그림이 하나도 없다");
+            int cellHeight = Mathf.RoundToInt(cellWidth * (float)first.height / first.width);
             int rows = (paths.Length + columns - 1) / columns;
             int width = columns * cellWidth + (columns + 1) * GAP;
             int height = TITLE_HEIGHT + rows * (LABEL_HEIGHT + cellHeight + GAP) + GAP;
@@ -51,13 +59,19 @@ namespace Defense.Editor.P04
                 int x = GAP + column * (cellWidth + GAP);
                 int top = height - TITLE_HEIGHT - row * (LABEL_HEIGHT + cellHeight + GAP);
                 DrawText(sheet, labels[i], x, top - LABEL_HEIGHT + (LABEL_HEIGHT - GLYPH_HEIGHT * TEXT_SCALE) / 2);
-                Blit(sheet, images[i], x, top - LABEL_HEIGHT - cellHeight, cellWidth, cellHeight);
+                if (images[i] != null)
+                {
+                    Blit(sheet, images[i], x, top - LABEL_HEIGHT - cellHeight, cellWidth, cellHeight);
+                }
             }
             sheet.Apply();
             File.WriteAllBytes(outPath, sheet.EncodeToPNG());
             foreach (Texture2D image in images)
             {
-                Object.DestroyImmediate(image);
+                if (image != null)
+                {
+                    Object.DestroyImmediate(image);
+                }
             }
             Object.DestroyImmediate(sheet);
             return outPath + " " + width + "x" + height;

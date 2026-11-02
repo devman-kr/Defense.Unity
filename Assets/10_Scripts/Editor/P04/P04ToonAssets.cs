@@ -25,11 +25,6 @@ namespace Defense.Editor.P04
         public const string RENDERING_FOLDER = "Assets/30_Assets/Rendering";
         public const string RAMP_TEXTURE_PATH = RENDERING_FOLDER + "/ToonRamp.png";
         private const int RAMP_WIDTH = 256;
-        // 셰이더 기본값과 같은 곡선 — PaletteToon.shader 의 _LowStep · _HighStep · _MidLevel · _StepSoftness
-        private const float RAMP_LOW_STEP = 0.05f;
-        private const float RAMP_HIGH_STEP = 0.5f;
-        private const float RAMP_MID_LEVEL = 0.6f;
-        private const float RAMP_SOFTNESS = 0.02f;
 
         /// <summary>두 머티리얼을 (없으면) 만들고 셰이더 기본값으로 둔다 — 외곽선 패스 켬, 받는 그림자 양자화 켬.</summary>
         public static string CreateMaterials()
@@ -49,19 +44,25 @@ namespace Defense.Editor.P04
         }
 
         /// <summary>
-        /// 램프 텍스처(256×1, 회색) — 단계 함수 기본값(문턱 0.05 · 0.5, 중간 단 0.6, 경계 폭 0.02)과 같은 곡선을 그려 둔다.
-        /// 같은 모양에서 텍스처 샘플과 단계 함수의 비용만 비교하려는 것(미지수 ⑬). 블롭 머티리얼도 만든다.
+        /// 램프 텍스처(256×1, 회색)를 `PaletteToon.mat` 의 단계 값(`_LowStep` · `_HighStep` · `_MidLevel` · `_StepSoftness`)으로 굽는다 —
+        /// 곡선의 정본은 머티리얼 값 하나. `_RAMP_TEXTURE` 가 켜져 있으면 셰이더는 그 값 대신 이 텍스처를 읽으므로, 값을 바꾸면 다시 굽는다.
+        /// 같은 모양에서 텍스처 샘플과 단계 함수의 비용만 비교하려는 것(미지수 ⑬). 블롭 머티리얼도 (없으면) 만든다.
         /// </summary>
         public static string CreateRampAndBlob()
         {
             Directory.CreateDirectory(RENDERING_FOLDER);
+            Material toon = LoadToon();
+            float lowStep = toon.GetFloat("_LowStep");
+            float highStep = toon.GetFloat("_HighStep");
+            float midLevel = toon.GetFloat("_MidLevel");
+            float softness = toon.GetFloat("_StepSoftness");
             Texture2D ramp = new Texture2D(RAMP_WIDTH, 1, TextureFormat.RGB24, false);
             for (int x = 0; x < RAMP_WIDTH; ++x)
             {
                 float amount = (x + 0.5f) / RAMP_WIDTH;
-                float low = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(RAMP_LOW_STEP - RAMP_SOFTNESS, RAMP_LOW_STEP + RAMP_SOFTNESS, amount));
-                float high = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(RAMP_HIGH_STEP - RAMP_SOFTNESS, RAMP_HIGH_STEP + RAMP_SOFTNESS, amount));
-                float value = low * RAMP_MID_LEVEL + high * (1f - RAMP_MID_LEVEL);
+                float low = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(lowStep - softness, lowStep + softness, amount));
+                float high = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(highStep - softness, highStep + softness, amount));
+                float value = low * midLevel + high * (1f - midLevel);
                 ramp.SetPixel(x, 0, new Color(value, value, value));
             }
             File.WriteAllBytes(RAMP_TEXTURE_PATH, ramp.EncodeToPNG());
@@ -80,7 +81,6 @@ namespace Defense.Editor.P04
             AssetDatabase.ImportAsset(RAMP_TEXTURE_PATH, ImportAssetOptions.ForceSynchronousImport);
             Texture2D rampAsset = AssetDatabase.LoadAssetAtPath<Texture2D>(RAMP_TEXTURE_PATH);
             Debug.Assert(rampAsset != null, "램프 텍스처를 못 읽었다: " + RAMP_TEXTURE_PATH);
-            Material toon = LoadToon();
             toon.SetTexture("_RampMap", rampAsset);
             EditorUtility.SetDirty(toon);
             StringBuilder report = new StringBuilder();

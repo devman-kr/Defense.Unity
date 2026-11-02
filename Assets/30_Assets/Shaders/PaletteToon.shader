@@ -3,7 +3,7 @@
 // 더한 것:
 //   _SHADOW_BANDS — 받는 그림자 감쇠를 N·L 과 따로 한 단으로 끊는다(부드러운 그림자 가장자리가 중간 단 고리를 만들지 않게).
 //   _ShadowSaturation — 어두운 단 색의 채도를 올린다(0 이면 PaletteCel 과 같다).
-//   캐릭터 전용(렌더링 레이어 1 이 켜진 렌더러만 — 섬 · 탑은 그대로):
+//   캐릭터 전용(렌더링 레이어 8 이 켜진 렌더러만 — 섬 · 탑은 그대로):
 //     _SELF_SHADOW_OFF — 그림자를 받지 않는다(바닥만 받음). _FIXED_LIGHT_DIR — 명암을 고정 방향으로(그림자는 실제 해).
 //     _RIM · _SPECULAR — 단계 프레넬 림 · 단계 하이라이트(빛 받는 쪽만).
 //   _RAMP_TEXTURE — 단계 함수 대신 램프 텍스처(전부).
@@ -103,8 +103,9 @@ Shader "Defense/PaletteToon"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-            // 렌더링 레이어 1(비트 1) = 캐릭터 — 스킨 메시 렌더러에 켠다(P04ToonCapture 가 시험 때 씬 인스턴스에만)
-            #define CHARACTER_LAYER 2u
+            // 렌더링 레이어 8(비트 8) = 캐릭터 — 스킨 메시 렌더러에 켠다(P04ToonCapture 가 시험 때 씬 인스턴스에만).
+            // 0~7 은 TagManager 에 Light Layer 0~7 로 이름이 붙어 있어(조명 레이어와 겹치지 않게) 이름 없는 8 을 쓴다
+            #define CHARACTER_LAYER 256u
 
             TEXTURE2D(_RampMap);
             SAMPLER(sampler_RampMap);
@@ -159,7 +160,7 @@ Shader "Defense/PaletteToon"
 
                 // 위치 · 그림자 마스크를 넘기는 판이 그림자 거리 끝의 페이드를 한다(URP Lit 과 같은 호출)
                 Light mainLight = GetMainLight(TransformWorldToShadowCoord(input.positionWS), input.positionWS, half4(1.0h, 1.0h, 1.0h, 1.0h));
-                // 캐릭터 = 렌더링 레이어 1 이 켜진 렌더러. 아래 캐릭터 전용 기법은 섬 · 탑에 걸리지 않는다(머티리얼은 하나 그대로)
+                // 캐릭터 = 렌더링 레이어 8 이 켜진 렌더러. 아래 캐릭터 전용 기법은 섬 · 탑에 걸리지 않는다(머티리얼은 하나 그대로)
                 bool isCharacter = (GetMeshRenderingLayer() & CHARACTER_LAYER) != 0u;
                 half shadowAttenuation = mainLight.shadowAttenuation;
                 #if defined(_SELF_SHADOW_OFF)
@@ -169,16 +170,19 @@ Shader "Defense/PaletteToon"
                 half3 lightDirection = mainLight.direction;
                 #if defined(_FIXED_LIGHT_DIR)
                     // 캐릭터 명암만 고정 방향(하루 조명과 무관), 그림자는 실제 해
-                    lightDirection = isCharacter ? normalize(_FixedLightDirection.xyz) : lightDirection;
+                    lightDirection = isCharacter ? SafeNormalize(_FixedLightDirection.xyz) : lightDirection;
                 #endif
                 half nDotL = saturate(dot(normalWS, lightDirection));
                 #if defined(_SHADOW_BANDS)
                     // 그림자는 따로 한 단 — 그림자 안은 어두운 단, 밖은 N·L 단 그대로
                     half lightAmount = nDotL;
-                    half shadowBand = smoothstep(_ShadowStep - _StepSoftness, _ShadowStep + _StepSoftness, shadowAttenuation);
+                    // 위 끝을 1 로 자른다 — 문턱 + 폭이 1 을 넘으면 그림자 없는 면(감쇠 1)도 어두운 단 쪽으로 섞인다
+                    half shadowBand = smoothstep(_ShadowStep - _StepSoftness, min(_ShadowStep + _StepSoftness, 1.0h), shadowAttenuation);
+                    half shadowMask = shadowBand;
                 #else
                     half lightAmount = nDotL * shadowAttenuation;
                     half shadowBand = 1.0h;
+                    half shadowMask = shadowAttenuation;
                 #endif
                 #if defined(_RAMP_TEXTURE)
                     // 램프 텍스처(가로 N·L, 세로 무관) — 단계 함수 대신 그린 곡선
@@ -195,8 +199,8 @@ Shader "Defense/PaletteToon"
                 half3 direct = lerp(dark, albedo, ramp) * mainLight.color;
                 #if defined(_RIM) || defined(_SPECULAR)
                     half3 viewDirection = GetWorldSpaceNormalizeViewDir(input.positionWS);
-                    // 빛 받는 쪽 · 캐릭터만
-                    half litSide = smoothstep(0.0h, _StepSoftness * 2.0h, nDotL) * shadowBand * (isCharacter ? 1.0h : 0.0h);
+                    // 빛 받는 쪽 · 그림자 밖 · 캐릭터만(양자화를 꺼도 그림자 안에는 남지 않게 감쇠를 곱한다)
+                    half litSide = smoothstep(0.0h, _StepSoftness * 2.0h, nDotL) * shadowMask * (isCharacter ? 1.0h : 0.0h);
                 #endif
                 #if defined(_RIM)
                     // 단계 프레넬 — 실루엣 가장자리, 빛 받는 쪽만
@@ -205,7 +209,7 @@ Shader "Defense/PaletteToon"
                 #endif
                 #if defined(_SPECULAR)
                     // 단계 하이라이트 — 블린-퐁 N·H 를 한 단으로
-                    half nDotH = saturate(dot(normalWS, normalize(lightDirection + viewDirection)));
+                    half nDotH = saturate(dot(normalWS, SafeNormalize(lightDirection + viewDirection)));
                     half specular = smoothstep(_SpecularThreshold - _StepSoftness * 0.25h, _SpecularThreshold + _StepSoftness * 0.25h, nDotH);
                     direct += _SpecularColor.rgb * specular * litSide * mainLight.color;
                 #endif

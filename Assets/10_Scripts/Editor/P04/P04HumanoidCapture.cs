@@ -21,15 +21,15 @@ namespace Defense.Editor.P04
         private const int LINEUP_HEIGHT = 1080;
         private const int CLOSE_SIZE = 1080;
         private const float BLENDER_FPS = 24f;   // Blender 프레임 번호(1 부터) → 클립 시간
-        private const float CAPTURE_TIME_SECONDS = 0.5f;
+        internal const float CAPTURE_TIME_SECONDS = 0.5f;
 
-        private const string IDLE_CLIP = "Idle";
+        internal const string IDLE_CLIP = "Idle";
         private const string HOP_CLIP = "Hop";
         private const string FLAP_CLIP = "Flap";
-        private const string WALK_CLIP = "Walk";
-        private const string SHOOT_CLIP = "Shoot";
+        internal const string WALK_CLIP = "Walk";
+        internal const string SHOOT_CLIP = "Shoot";
         private const string ATTACK_CLIP = "Attack";
-        private const int SHOOT_DRAW_FRAME = 16;
+        internal const int SHOOT_DRAW_FRAME = 16;
         // 관절 최대 접힘 프레임 — Blender `P04_RESULT.models.*.joints` 에서 옮긴 값. Blender 동작을 고치면 같이 고친다
         private const int ARCHER_MAX_ELBOW_FRAME = 24;   // 오른팔꿈치 · Shoot
         private const int ARCHER_MAX_KNEE_FRAME = 19;    // 왼무릎 · Walk
@@ -208,7 +208,7 @@ namespace Defense.Editor.P04
         }
 
         /// <summary>루트들 아래 스킨 메시가 렌더마다 행렬을 다시 계산하게 한다(P03 발견 ④). 켠 수를 돌려준다.</summary>
-        private static int ForceSkinningPerRender(params Transform[] roots)
+        internal static int ForceSkinningPerRender(params Transform[] roots)
         {
             int count = 0;
             foreach (Transform root in roots)
@@ -222,7 +222,7 @@ namespace Defense.Editor.P04
             return count;
         }
 
-        private static void ShowOnly(Scene scene, params Transform[] keep)
+        internal static void ShowOnly(Scene scene, params Transform[] keep)
         {
             foreach (GameObject root in scene.GetRootGameObjects())
             {
@@ -231,7 +231,7 @@ namespace Defense.Editor.P04
         }
 
         /// <summary>슬라임(짝수 Idle · 홀수 Hop) · 박쥐 Flap — P03 녹화와 같은 위상 규칙.</summary>
-        private static void PoseEnemies(Transform smooth, Clips clips, float time)
+        internal static void PoseEnemies(Transform smooth, Clips clips, float time)
         {
             Transform slimes = smooth.Find(P03SampleSceneBuilder.SLIMES_NAME);
             Transform bats = smooth.Find(P03SampleSceneBuilder.BATS_NAME);
@@ -248,7 +248,7 @@ namespace Defense.Editor.P04
         }
 
         /// <summary>궁수 · 좀비 — 첫 개체는 주어진 시간 그대로(근접 카메라가 본다), 나머지는 위상을 나눠 엇갈린다.</summary>
-        private static void PoseHumanoids(Transform humanoids, Clips clips, AnimationClip archerClip, float archerTime, AnimationClip zombieClip, float zombieTime)
+        internal static void PoseHumanoids(Transform humanoids, Clips clips, AnimationClip archerClip, float archerTime, AnimationClip zombieClip, float zombieTime)
         {
             SampleGroup(humanoids.Find(P04HumanoidSceneBuilder.ARCHERS_NAME), archerClip, archerTime);
             SampleGroup(humanoids.Find(P04HumanoidSceneBuilder.ZOMBIES_NAME), zombieClip, zombieTime);
@@ -268,7 +268,7 @@ namespace Defense.Editor.P04
             report.Append(path).Append(' ').Append(width).Append('x').Append(height).Append('\n');
         }
 
-        private static float ToTime(int blenderFrame)
+        internal static float ToTime(int blenderFrame)
         {
             return (blenderFrame - 1) / BLENDER_FPS;
         }
@@ -307,7 +307,7 @@ namespace Defense.Editor.P04
             }
         }
 
-        private sealed class Clips
+        internal sealed class Clips
         {
             public readonly Dictionary<string, AnimationClip> Slime = Load(P04ModelImport.SLIME_MODEL_PATH);
             public readonly Dictionary<string, AnimationClip> Bat = Load(P04ModelImport.BAT_MODEL_PATH);

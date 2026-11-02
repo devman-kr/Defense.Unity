@@ -6,7 +6,7 @@ doc_type: guide
 status: final
 lifecycle: living
 created: 2026-10-31
-updated: 2026-11-01
+updated: 2026-11-02
 ---
 # Tools/Blender — 창 없는 Blender 로 로우폴리 모델을 만드는 스크립트
 
@@ -31,3 +31,4 @@ Blender -b --factory-startup -noaudio --python-exit-code 1 --python Tools/Blende
 | 파일 | 만드는 것 | 비고 |
 |---|---|---|
 | `make_enemies.py` | 슬라임(뼈 2 · Idle · Hop · Hit · Die) · 박쥐(뼈 3 · Flap · Hit) · 등불 탑(정적) · 팔레트 4×4 | Planning P03 S2(Opus 5.5, `a5a2a5c`)가 다듬은 판 — 박쥐 날개 UV 층을 `UVMap` 으로 맞춰 팔레트 셀 6 이 나오고, 「날갯짓 회전축」은 결함이 아니라 사선 카메라의 원근 착시라 박쥐 렌더만 정면 카메라로 바꿨다(`P03_RESULT.deform` 의 `tip_z_l` = `tip_z_r`). `Material.use_nodes` · `World.use_nodes` 는 Blender 6.0 에서 제거 예정(경고) |
+| `make_enemies_smooth.py` | 위 셋의 매끈 판 — 같은 뼈대 · 동작 · 팔레트 셀에 서브디비전 2단계 + 스무스 셰이딩(박쥐 귀 · 탑 지붕 꼭짓점과 날개 외곽 · 탑 테두리에 크리스) · FBX 는 `bake_space_transform` 켬 하나(`Slime.fbx` · `Bat.fbx` · `Tower.fbx` · `Palette.png`) · 로우폴리와 나란한 라인업 렌더 | Planning P04 S1. 결과 JSON 은 `P04_RESULT`(단계별 삼각형 · 정점 · UV 셀 중심 이탈 · FBX 다시 읽기 · Hop 13 높이). 모디파이어는 FBX 내보내기가 적용한다(`use_mesh_modifiers` — 뼈대는 REST 자세로 두고 Subsurf 를 적용해 가중치가 남는다). 창 없이 6초 안팎, 메모리 0.55 GB |

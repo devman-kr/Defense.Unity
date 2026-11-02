@@ -121,6 +121,64 @@ namespace Defense.Editor.P04
         /// 셰이더의 패스 · 변형 수와 세로 장면(매끈 판 + 인간형)의 렌더러 · 삼각형 · 정점 수를 한 줄로 — 「× 300」 환산은 보고에서 한다.
         /// UnityStats 는 마지막 렌더의 통계(창 없는 에디터에서 값이 나오는지도 이 출력으로 본다).
         /// </summary>
+        /// <summary>
+        /// 최종 조합 녹화 — 품질 하나에서 매끈 판 루트 + 인간형 루트를 frameCount 장. 슬라임 Idle · Hop · 박쥐 Flap(P03 규칙),
+        /// 궁수는 짝수 Shoot · 홀수 Walk, 좀비는 짝수 Walk · 홀수 Attack, 개체마다 위상이 다르다. 스킨 메시는 렌더마다 행렬 재계산.
+        /// options 의 Configure · PrepareScene 을 캡처와 같이 따른다. 끝나면 품질 · 씬을 되돌린다.
+        /// </summary>
+        public static string Record(string outDir, int quality, int frameCount, int fps, int width, int height, Material material, Options options)
+        {
+            int originalQuality = QualitySettings.GetQualityLevel();
+            QualitySettings.SetQualityLevel(quality, true);
+            Scene scene = EditorSceneManager.OpenScene(P04SampleSceneBuilder.SCENE_PATH, OpenSceneMode.Single);
+            Transform smooth = P03FrameRecorder.GetRoot(scene, P04SampleSceneBuilder.SMOOTH_ROOT_NAME);
+            Transform humanoids = P03FrameRecorder.GetRoot(scene, P04HumanoidSceneBuilder.HUMANOIDS_ROOT_NAME);
+            Material used = material;
+            if (options != null && options.Configure != null)
+            {
+                used = new Material(material);
+                options.Configure(used);
+            }
+            foreach (Transform root in new[] { smooth, humanoids })
+            {
+                P04SampleSceneBuilder.ApplyMaterial(root.gameObject, used);
+            }
+            MarkCharacters(scene);
+            if (options != null && options.PrepareScene != null)
+            {
+                options.PrepareScene(scene);
+            }
+            P04HumanoidCapture.ShowOnly(scene, smooth, humanoids);
+            int skinnedCount = P04HumanoidCapture.ForceSkinningPerRender(smooth, humanoids);
+            P04HumanoidCapture.Clips clips = new P04HumanoidCapture.Clips();
+            Transform archers = humanoids.Find(P04HumanoidSceneBuilder.ARCHERS_NAME);
+            Transform zombies = humanoids.Find(P04HumanoidSceneBuilder.ZOMBIES_NAME);
+            Camera camera = smooth.Find(P03SampleSceneBuilder.CAMERA_NAME).GetComponent<Camera>();
+            Directory.CreateDirectory(outDir);
+            for (int frame = 0; frame < frameCount; ++frame)
+            {
+                float time = (float)frame / fps;
+                P04HumanoidCapture.PoseEnemies(smooth, clips, time);
+                SampleAlternating(archers, clips.Archer[P04HumanoidCapture.SHOOT_CLIP], clips.Archer[P04HumanoidCapture.WALK_CLIP], time);
+                SampleAlternating(zombies, clips.Zombie[P04HumanoidCapture.WALK_CLIP], clips.Zombie[P04HumanoidCapture.ATTACK_CLIP], time);
+                P03FrameRecorder.RenderToPng(camera, Path.Combine(outDir, "frame_" + frame.ToString("000") + ".png"), width, height);
+            }
+            string summary = outDir + " quality=" + GetQualityName(quality) + " frames=" + frameCount + " fps=" + fps + " size=" + width + "x" + height + " skinned=" + skinnedCount;
+            QualitySettings.SetQualityLevel(originalQuality, true);
+            EditorSceneManager.OpenScene(P04SampleSceneBuilder.SCENE_PATH, OpenSceneMode.Single);
+            return summary;
+        }
+
+        // 짝수 개체는 even 클립, 홀수 개체는 odd 클립 — 위상은 개체 순서로 나눈다
+        private static void SampleAlternating(Transform group, AnimationClip even, AnimationClip odd, float time)
+        {
+            for (int i = 0; i < group.childCount; ++i)
+            {
+                AnimationClip clip = i % 2 == 0 ? even : odd;
+                clip.SampleAnimation(group.GetChild(i).gameObject, Mathf.Repeat(time + clip.length * i / group.childCount, clip.length));
+            }
+        }
+
         public static string MeasureCost(Material material)
         {
             Shader shader = material.shader;

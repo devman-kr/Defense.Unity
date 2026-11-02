@@ -28,7 +28,7 @@ namespace Defense.Editor.P04
         private const string FLAP_CLIP = "Flap";
         internal const string WALK_CLIP = "Walk";
         internal const string SHOOT_CLIP = "Shoot";
-        private const string ATTACK_CLIP = "Attack";
+        internal const string ATTACK_CLIP = "Attack";
         internal const int SHOOT_DRAW_FRAME = 16;
         // 관절 최대 접힘 프레임 — Blender `P04_RESULT.models.*.joints` 에서 옮긴 값. Blender 동작을 고치면 같이 고친다
         private const int ARCHER_MAX_ELBOW_FRAME = 24;   // 오른팔꿈치 · Shoot

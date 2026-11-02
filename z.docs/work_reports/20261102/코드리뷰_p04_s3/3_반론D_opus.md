@@ -7,6 +7,7 @@ status: final
 lifecycle: static
 created: 2026-11-02
 updated: 2026-11-02
+work_unit: P04
 ---
 세션 모델: Opus 5.5(지시서 기준과 같다).
 

@@ -1,7 +1,7 @@
 ---
 id: 20261030-unity-assets-ledger
 title: ASSETS — 외부 파일 장부
-summary: Defense.Unity 외부 파일 장부 — .gitignore · Unity 템플릿 산출물 · 코딩 표준 사본 · .editorconfig · Tools/Blender(GPL) · P03 · P04 샘플 모델(인간형 포함) · 셀 셰이더와 추가 패키지 com.unity.pipeline · newtonsoft-json 의 출처 · 라이선스 · AI 생성 여부.
+summary: Defense.Unity 외부 파일 장부 — .gitignore · Unity 템플릿 산출물 · 코딩 표준 사본 · .editorconfig · Tools/Blender(GPL) · P03 · P04 샘플 모델 · 셀 셰이더와 추가 패키지 com.unity.pipeline · newtonsoft-json 의 출처 · 라이선스 · AI 생성 여부.
 doc_type: register
 status: final
 lifecycle: living
